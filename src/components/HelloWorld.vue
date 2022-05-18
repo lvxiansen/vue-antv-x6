@@ -341,7 +341,7 @@ export default {
                       // 下载
                       DataUri.downloadDataUri(dataUri, 'chart.png')},
                         {
-                          backgroundColor:'blue',
+                          // backgroundColor:'blue',
                           padding: {
                             top: 20,
                             right: 30,
