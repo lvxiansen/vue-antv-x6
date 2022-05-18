@@ -1,22 +1,23 @@
 <template>
     <div class="flow-box">
-        <!-- 供拖拽图形 -->
+        <!-- 左侧的   供拖拽图形 -->
         <div class="graph-stencil" ref="flowStencil"></div>
-        <!-- 画板 -->
+        <!-- 背景  画板 -->
         <div class="graph-container" ref="flowContainer"></div>
-        <!-- 修改名称弹框 -->
+        <!-- 双击某个框时出现的   修改名称弹框 -->
         <name-drawer ref="nameDrawer" @editCellName="editCellName"></name-drawer>
-        <!-- 操作栏 -->
+        <!-- 右上角    操作栏 -->
         <toolbar ref="toolbar" @handleClick="handleClick" class="flow-tool"></toolbar>
     </div>
 </template>
 
 <script>
-import { Graph, Shape, Addon, DataUri } from "@antv/x6";
+import { Graph, Shape, Addon } from "@antv/x6";
 import "@antv/x6-vue-shape";
 import "./shape";
 import nameDrawer from "./nameDrawer"
 import toolbar from "./toolbar"
+import { DataUri } from '@antv/x6'
 
 export default {
     components: { nameDrawer, toolbar },
@@ -35,6 +36,7 @@ export default {
             // #region 初始化画布
             this.graph = new Graph({
                 container: this.$refs.flowContainer,
+                //网格
                 grid: {
                     size: 10,
                     visible: true,
@@ -51,9 +53,10 @@ export default {
                         },
                     ],
                 },
+                //开启 panning 选项来支持拖拽平移
                 panning: {
                     enabled: true,
-                    eventTypes: ["leftMouseDown", "rightMouseDown"],
+                    eventTypes: ["leftMouseDown", "rightMouseDown","mousewheel"],
                 },
                 mousewheel: {
                     enabled: true,
@@ -332,6 +335,21 @@ export default {
                     break
                 case 'center':
                     graph.centerContent()
+                    break
+                case 'export':
+                    graph.toPNG((dataUri) => {
+                      // 下载
+                      DataUri.downloadDataUri(dataUri, 'chart.png')},
+                        {
+                          backgroundColor:'blue',
+                          padding: {
+                            top: 20,
+                            right: 30,
+                            bottom: 40,
+                            left: 50,
+                          },
+                        }
+                    )
                     break
                 default:
                     break

@@ -18,6 +18,9 @@
         <el-tooltip class="item" effect="dark" content="清空" placement="top-start">
             <i class="el-icon-delete" @click="handleClick('delete')"></i>
         </el-tooltip>
+      <el-tooltip class="item" effect="dark" content="导出" placement="top-start">
+        <i class="el-icon-delete" @click="handleClick('export')"></i>
+      </el-tooltip>
     </div>
 </template>
 
