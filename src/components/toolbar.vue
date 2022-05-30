@@ -21,6 +21,12 @@
       <el-tooltip class="item" effect="dark" content="导出" placement="top-start">
         <i class="el-icon-download" @click="handleClick('export')"></i>
       </el-tooltip>
+      <el-tooltip class="item" effect="dark" content="网格" placement="top-start">
+        <i class="el-icon-download" @click="handleClick('change')"></i>
+      </el-tooltip>
+      <el-tooltip class="item" effect="dark" content="序列化" placement="top-start">
+        <i class="el-icon-download" @click="handleClick('getJson')"></i>
+      </el-tooltip>
     </div>
 </template>
 

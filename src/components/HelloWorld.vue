@@ -8,6 +8,7 @@
         <name-drawer ref="nameDrawer" @editCellName="editCellName"></name-drawer>
         <!-- 右上角    操作栏 -->
         <toolbar ref="toolbar" @handleClick="handleClick" class="flow-tool"></toolbar>
+        <div class="graph-minimapcontainer" ref="flowminimapContainer"></div>
     </div>
 </template>
 
@@ -26,6 +27,8 @@ export default {
             graph: null, //画布图层
             stencil: null, //组件栏组件
             cellId: null,//保存修改节点Id
+            visible:true,
+            message:0,
         };
     },
     mounted() {
@@ -39,7 +42,7 @@ export default {
                 //网格
                 grid: {
                     size: 10,
-                    visible: true,
+                    visible: this.visible,
                     type: "doubleMesh",
                     args: [
                         {
@@ -58,12 +61,14 @@ export default {
                     enabled: true,
                     eventTypes: ["leftMouseDown", "rightMouseDown","mousewheel"],
                 },
+              //滚轮缩放
                 mousewheel: {
                     enabled: true,
                     zoomAtMousePosition: true,
                     minScale: 0.5,
                     maxScale: 3,
                 },
+              //全局连接设置
                 connecting: {
                     router: "manhattan",
                     connector: {
@@ -84,7 +89,7 @@ export default {
                                 line: {
                                     stroke: "#000",
                                     strokeWidth: 1,
-                                    targetMarker: {
+                                    targetMarker: { //target箭头设置
                                         name: "block",
                                         width: 12,
                                         height: 8,
@@ -116,11 +121,70 @@ export default {
                 history: true,
                 clipboard: true,
                 selecting: true, //通过点击或者套索框选节点
+                scroller: {
+                  enabled: true,
+                },
+              minimap: {
+                height:100,
+                width: 200,
+                enabled: true,
+                container: this.$refs.flowminimapContainer,
+                scalable:true
+              }
             });
-            this.initStencil(); //初始化组件菜单栏
+            this.initStencil(); //初始化组件菜单栏 左边的
             this.initKeyboard(); //工具栏
             this.initEvent(); //鼠标移到组件上 显示连接点
         },
+        change() {
+          this.graph.drawGrid(
+              {
+                type:'mesh',
+              }
+          )
+          this.graph.hideGrid()
+          if (this.visible) {
+            this.graph.hideGrid()
+            this.visible = !this.visible
+          } else {
+            this.graph.showGrid()
+            this.visible = !this.visible
+          }
+        },
+        getNode() {
+          let graph = this.graph
+          // console.log(graph.toJSON())
+          const nodes = graph.getNodes()
+          const result = nodes.map(node => {
+            const { id, port } = node
+            return {
+              id,
+              port
+            }
+          })
+          return result
+        },
+        getEdge() {
+          let graph = this.graph
+          // 获取所有边
+          const edges = graph.getEdges()
+          const result = edges.map(edge => {
+            return {
+              id: edge.id,
+              source: edge.source.cell,
+              target: edge.target.cell
+            }
+          })
+          return result
+        },
+        getJson() {
+          let atoms = {nodes:this.getNode(),edges:this.getEdge()}
+          console.log(atoms)
+          return atoms
+        },
+        /*
+        * 提供了一个类似侧边栏的 UI 组件，并支持分组、折叠、搜索等能力
+        * */
         initStencil() {
             const { graph } = this;
             //初始化拖拽图形组件菜单栏
@@ -149,9 +213,89 @@ export default {
         },
 
         initShape() {
+          //this其实是数据，这里是令graph = this.Grape
             const { graph, stencil } = this;
+            // Shape.Rect.define({
+            //   shape: 'aa-rect',
+            //   width: 60,
+            //   height: 30,
+            //   ports: {
+            //     groups: {
+            //       in: {
+            //         position: 'top',
+            //         label: {
+            //           position: 'top',
+            //         },
+            //         attrs: {
+            //           circle: {
+            //             r: 2,
+            //             magnet: true,
+            //             stroke: '#31d0c6',
+            //             strokeWidth: 2,
+            //             fill: '#fff',
+            //           },
+            //         },
+            //       },
+            //       out: {
+            //         position: 'bottom',
+            //         label: {
+            //           position: 'bottom',
+            //         },
+            //         attrs: {
+            //           circle: {
+            //             r: 2,
+            //             magnet: true,
+            //             stroke: '#31d0c6',
+            //             strokeWidth: 2,
+            //             fill: '#fff',
+            //           },
+            //         },
+            //       },
+            //     },
+            //     items: [
+            //       {
+            //         id: 'port1',
+            //         group: 'in',
+            //         attrs: {
+            //           text: { text: 'i1' },
+            //         },
+            //       },
+            //       {
+            //         id: 'port2',
+            //         group: 'in',
+            //         attrs: {
+            //           text: { text: 'i2' },
+            //         },
+            //       },
+            //       {
+            //         id: 'port3',
+            //         group: 'in',
+            //         attrs: {
+            //           text: { text: 'i3' },
+            //         },
+            //       },
+            //       {
+            //         id: 'port4',
+            //         group: 'out',
+            //         attrs: {
+            //           text: { text: 'o1' },
+            //         },
+            //       },
+            //       {
+            //         id: 'port5',
+            //         group: 'out',
+            //         attrs: {
+            //           text: { text: 'o2' },
+            //         },
+            //       },
+            //     ],
+            //   },
+            // })
             //shape 名字对应shape.js中Graph.registerNode 第一个参数
-            const r1 = graph.createNode({ shape: "custom-rect" });
+            const r1 = graph.createNode({
+              shape: "custom-rect" ,
+              label:"test",
+            });
             const r2 = graph.createNode({
                 shape: "custom-rect",
                 attrs: {
@@ -173,6 +317,78 @@ export default {
                 shape: "custom-circle",
             });
             stencil.load([r1, r2, r3, r4]);
+        },
+
+        initKeyboard() {
+          const { graph } = this;
+          // copy cut paste
+          graph.bindKey(["meta+c", "ctrl+c"], () => {
+            const cells = graph.getSelectedCells();
+            if (cells.length) {
+              graph.copy(cells);
+            }
+            return false;
+          });
+          graph.bindKey(["meta+x", "ctrl+x"], () => {
+            const cells = graph.getSelectedCells();
+            if (cells.length) {
+              graph.cut(cells);
+            }
+            return false;
+          });
+          graph.bindKey(["meta+v", "ctrl+v"], () => {
+            if (!graph.isClipboardEmpty()) {
+              const cells = graph.paste({ offset: 32 });
+              graph.cleanSelection();
+              graph.select(cells);
+            }
+            return false;
+          });
+
+          //undo redo
+          graph.bindKey(["meta+z", "ctrl+z"], () => {
+            if (graph.history.canUndo()) {
+              graph.history.undo();
+            }
+            return false;
+          });
+          graph.bindKey(["meta+shift+z", "ctrl+shift+z"], () => {
+            if (graph.history.canRedo()) {
+              graph.history.redo();
+            }
+            return false;
+          });
+
+          // select all
+          graph.bindKey(["meta+a", "ctrl+a"], () => {
+            const nodes = graph.getNodes();
+            if (nodes) {
+              graph.select(nodes);
+            }
+          });
+
+          //delete
+          graph.bindKey("backspace", () => {
+            const cells = graph.getSelectedCells();
+            console.log(cells)
+            if (cells.length) {
+              graph.removeCells(cells);
+            }
+          });
+
+          // zoom
+          graph.bindKey(["ctrl+1", "meta+1"], () => {
+            const zoom = graph.zoom();
+            if (zoom < 1.5) {
+              graph.zoom(0.1);
+            }
+          });
+          graph.bindKey(["ctrl+2", "meta+2"], () => {
+            const zoom = graph.zoom();
+            if (zoom > 0.5) {
+              graph.zoom(-0.1);
+            }
+          });
         },
 
         initEvent() {
@@ -222,77 +438,7 @@ export default {
             });
         },
 
-        initKeyboard() {
-            const { graph } = this;
-            // copy cut paste
-            graph.bindKey(["meta+c", "ctrl+c"], () => {
-                const cells = graph.getSelectedCells();
-                if (cells.length) {
-                    graph.copy(cells);
-                }
-                return false;
-            });
-            graph.bindKey(["meta+x", "ctrl+x"], () => {
-                const cells = graph.getSelectedCells();
-                if (cells.length) {
-                    graph.cut(cells);
-                }
-                return false;
-            });
-            graph.bindKey(["meta+v", "ctrl+v"], () => {
-                if (!graph.isClipboardEmpty()) {
-                    const cells = graph.paste({ offset: 32 });
-                    graph.cleanSelection();
-                    graph.select(cells);
-                }
-                return false;
-            });
 
-            //undo redo
-            graph.bindKey(["meta+z", "ctrl+z"], () => {
-                if (graph.history.canUndo()) {
-                    graph.history.undo();
-                }
-                return false;
-            });
-            graph.bindKey(["meta+shift+z", "ctrl+shift+z"], () => {
-                if (graph.history.canRedo()) {
-                    graph.history.redo();
-                }
-                return false;
-            });
-
-            // select all
-            graph.bindKey(["meta+a", "ctrl+a"], () => {
-                const nodes = graph.getNodes();
-                if (nodes) {
-                    graph.select(nodes);
-                }
-            });
-
-            //delete
-            graph.bindKey("backspace", () => {
-                const cells = graph.getSelectedCells();
-                console.log(cells)
-                if (cells.length) {
-                    graph.removeCells(cells);
-                }
-            });
-
-            // zoom
-            graph.bindKey(["ctrl+1", "meta+1"], () => {
-                const zoom = graph.zoom();
-                if (zoom < 1.5) {
-                    graph.zoom(0.1);
-                }
-            });
-            graph.bindKey(["ctrl+2", "meta+2"], () => {
-                const zoom = graph.zoom();
-                if (zoom > 0.5) {
-                    graph.zoom(-0.1);
-                }
-            });
-        },
         editCellName(form) {
             //修改节点信息
             let node = this.graph.getCellById(this.cellId)
@@ -341,7 +487,7 @@ export default {
                       // 下载
                       DataUri.downloadDataUri(dataUri, 'chart.png')},
                         {
-                          // backgroundColor:'blue',
+                          backgroundColor:"#ffffff",
                           padding: {
                             top: 20,
                             right: 30,
@@ -351,6 +497,12 @@ export default {
                         }
                     )
                     break
+                case 'change':
+                  this.change()
+                  break
+                case 'getJson':
+                  this.getJson()
+                  break
                 default:
                     break
             }
@@ -360,6 +512,17 @@ export default {
 </script>
 
 <style lang="scss">
+#gridtest {
+  position: absolute;
+  padding: 10px 20px;
+  display: flex;
+  top: 0;
+  right: 300px;
+  align-items: center;
+  width: 1px;
+  //text-align: center;
+  text-align: left;
+}
 .flow-box {
     width: 100%;
     height: 100vh;
@@ -380,6 +543,13 @@ export default {
 .graph-container {
     flex: 1;
     height: 100%;
+}
+.graph-minimapcontainer{
+  position: fixed;
+  z-index: 999;
+  bottom: 20px;
+  right: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 .x6-widget-stencil {
     background-color: #fff;
