@@ -8,27 +8,55 @@
         <name-drawer ref="nameDrawer" @editCellName="editCellName"></name-drawer>
         <!-- 右上角    操作栏 -->
         <toolbar ref="toolbar" @handleClick="handleClick" class="flow-tool"></toolbar>
+        <slot name="rightPane">
+            <modal :show.sync="showAttrConfig" title="属性配置" @keyup.stop.native="">
+                <div slot="content">
+                    <el-form
+                        :model="nodeFrmData"
+                        label-width="80px"
+                        label-position="left"
+                    >
+                        <el-form-item label="名称" prop="name">
+                            <el-input v-model="nodeFrmData.name"></el-input>
+                        </el-form-item>
+                        <el-form-item label="属性1" prop="属性1">
+                            <el-input v-model="nodeFrmData.属性1"></el-input>
+                        </el-form-item>
+                        <el-form-item label="属性2" prop="属性2">
+                            <el-input v-model="nodeFrmData.属性2"></el-input>
+                        </el-form-item>
+                    </el-form>
+                </div>
+                <span slot="footer">
+          <el-button @click="close">取消</el-button>
+          <el-button type="primary" @click="confirm">确定</el-button>
+        </span>
+            </modal>
+        </slot>
         <div class="graph-minimapcontainer" ref="flowminimapContainer"></div>
     </div>
 </template>
 
 <script>
-import { Graph, Shape, Addon } from "@antv/x6";
+import {Graph, Shape, Addon} from "@antv/x6";
 import "@antv/x6-vue-shape";
 import "./shape";
 import nameDrawer from "./nameDrawer"
 import toolbar from "./toolbar"
-import { DataUri } from '@antv/x6'
+import modal from "./modal"
+import {DataUri} from '@antv/x6'
 
 export default {
-    components: { nameDrawer, toolbar },
+    components: {nameDrawer, toolbar, modal},
     data() {
         return {
             graph: null, //画布图层
             stencil: null, //组件栏组件
             cellId: null,//保存修改节点Id
-            visible:true,
-            message:0,
+            visible: true,
+            message: 0,
+            showAttrConfig: false,
+            nodeFrmData: {},
         };
     },
     mounted() {
@@ -59,16 +87,16 @@ export default {
                 //开启 panning 选项来支持拖拽平移
                 panning: {
                     enabled: true,
-                    eventTypes: ["leftMouseDown", "rightMouseDown","mousewheel"],
+                    eventTypes: ["leftMouseDown", "rightMouseDown", "mousewheel"],
                 },
-              //滚轮缩放
+                //滚轮缩放
                 mousewheel: {
                     enabled: true,
                     zoomAtMousePosition: true,
                     minScale: 0.5,
                     maxScale: 3,
                 },
-              //全局连接设置
+                //全局连接设置
                 connecting: {
                     router: "manhattan",
                     connector: {
@@ -99,7 +127,7 @@ export default {
                             zIndex: 0,
                         });
                     },
-                    validateConnection({ targetMagnet }) {
+                    validateConnection({targetMagnet}) {
                         return !!targetMagnet;
                     },
                 },
@@ -122,71 +150,73 @@ export default {
                 clipboard: true,
                 selecting: true, //通过点击或者套索框选节点
                 scroller: {
-                  enabled: true,
+                    enabled: true,
                 },
-              minimap: {
-                height:100,
-                width: 200,
-                enabled: true,
-                container: this.$refs.flowminimapContainer,
-                scalable:true
-              }
+                minimap: {
+                    height: 100,
+                    width: 200,
+                    enabled: true,
+                    container: this.$refs.flowminimapContainer,
+                    scalable: true
+                }
             });
             this.initStencil(); //初始化组件菜单栏 左边的
             this.initKeyboard(); //工具栏
             this.initEvent(); //鼠标移到组件上 显示连接点
         },
         change() {
-          this.graph.drawGrid(
-              {
-                type:'mesh',
-              }
-          )
-          this.graph.hideGrid()
-          if (this.visible) {
+            this.graph.drawGrid(
+                {
+                    type: 'mesh',
+                }
+            )
             this.graph.hideGrid()
-            this.visible = !this.visible
-          } else {
-            this.graph.showGrid()
-            this.visible = !this.visible
-          }
+            if (this.visible) {
+                this.graph.hideGrid()
+                this.visible = !this.visible
+            } else {
+                this.graph.showGrid()
+                this.visible = !this.visible
+            }
         },
         getNode() {
-          let graph = this.graph
-          // console.log(graph.toJSON())
-          const nodes = graph.getNodes()
-          const result = nodes.map(node => {
-            const { id, port } = node
-            return {
-              id,
-              port
-            }
-          })
-          return result
+            let graph = this.graph
+            // console.log(graph.toJSON())
+            const nodes = graph.getNodes()
+            console.log("nodes:",nodes)
+            const result = nodes.map(node => {
+                const {id, port} = node
+                console.log("node",node.data)
+                return {
+                    id,
+                    port
+                }
+            })
+            return result
         },
         getEdge() {
-          let graph = this.graph
-          // 获取所有边
-          const edges = graph.getEdges()
-          const result = edges.map(edge => {
-            return {
-              id: edge.id,
-              source: edge.source.cell,
-              target: edge.target.cell
-            }
-          })
-          return result
+            let graph = this.graph
+            // 获取所有边
+            const edges = graph.getEdges()
+            const result = edges.map(edge => {
+                return {
+                    id: edge.id,
+                    source: edge.source.cell,
+                    target: edge.target.cell
+                }
+            })
+            return result
         },
         getJson() {
-          let atoms = {nodes:this.getNode(),edges:this.getEdge()}
-          console.log(atoms)
-          return atoms
+            let atoms = {nodes: this.getNode(), edges: this.getEdge()}
+            console.log(atoms)
+            return atoms
         },
         /*
         * 提供了一个类似侧边栏的 UI 组件，并支持分组、折叠、搜索等能力
         * */
         initStencil() {
-            const { graph } = this;
+            const {graph} = this;
             //初始化拖拽图形组件菜单栏
             this.stencil = new Addon.Stencil({
                 title: "组件",
@@ -213,8 +243,8 @@ export default {
         },
 
         initShape() {
-          //this其实是数据，这里是令graph = this.Grape
-            const { graph, stencil } = this;
+            //this其实是数据，这里是令graph = this.Grape
+            const {graph, stencil} = this;
             // Shape.Rect.define({
             //   shape: 'aa-rect',
             //   width: 60,
@@ -293,8 +323,8 @@ export default {
             // })
             //shape 名字对应shape.js中Graph.registerNode 第一个参数
             const r1 = graph.createNode({
-              shape: "custom-rect" ,
-              label:"test",
+                shape: "custom-rect",
+                label: "test",
             });
             const r2 = graph.createNode({
                 shape: "custom-rect",
@@ -320,79 +350,79 @@ export default {
         },
 
         initKeyboard() {
-          const { graph } = this;
-          // copy cut paste
-          graph.bindKey(["meta+c", "ctrl+c"], () => {
-            const cells = graph.getSelectedCells();
-            if (cells.length) {
-              graph.copy(cells);
-            }
-            return false;
-          });
-          graph.bindKey(["meta+x", "ctrl+x"], () => {
-            const cells = graph.getSelectedCells();
-            if (cells.length) {
-              graph.cut(cells);
-            }
-            return false;
-          });
-          graph.bindKey(["meta+v", "ctrl+v"], () => {
-            if (!graph.isClipboardEmpty()) {
-              const cells = graph.paste({ offset: 32 });
-              graph.cleanSelection();
-              graph.select(cells);
-            }
-            return false;
-          });
+            const {graph} = this;
+            // copy cut paste
+            graph.bindKey(["meta+c", "ctrl+c"], () => {
+                const cells = graph.getSelectedCells();
+                if (cells.length) {
+                    graph.copy(cells);
+                }
+                return false;
+            });
+            graph.bindKey(["meta+x", "ctrl+x"], () => {
+                const cells = graph.getSelectedCells();
+                if (cells.length) {
+                    graph.cut(cells);
+                }
+                return false;
+            });
+            graph.bindKey(["meta+v", "ctrl+v"], () => {
+                if (!graph.isClipboardEmpty()) {
+                    const cells = graph.paste({offset: 32});
+                    graph.cleanSelection();
+                    graph.select(cells);
+                }
+                return false;
+            });
 
-          //undo redo
-          graph.bindKey(["meta+z", "ctrl+z"], () => {
-            if (graph.history.canUndo()) {
-              graph.history.undo();
-            }
-            return false;
-          });
-          graph.bindKey(["meta+shift+z", "ctrl+shift+z"], () => {
-            if (graph.history.canRedo()) {
-              graph.history.redo();
-            }
-            return false;
-          });
+            //undo redo
+            graph.bindKey(["meta+z", "ctrl+z"], () => {
+                if (graph.history.canUndo()) {
+                    graph.history.undo();
+                }
+                return false;
+            });
+            graph.bindKey(["meta+shift+z", "ctrl+shift+z"], () => {
+                if (graph.history.canRedo()) {
+                    graph.history.redo();
+                }
+                return false;
+            });
 
-          // select all
-          graph.bindKey(["meta+a", "ctrl+a"], () => {
-            const nodes = graph.getNodes();
-            if (nodes) {
-              graph.select(nodes);
-            }
-          });
+            // select all
+            graph.bindKey(["meta+a", "ctrl+a"], () => {
+                const nodes = graph.getNodes();
+                if (nodes) {
+                    graph.select(nodes);
+                }
+            });
 
-          //delete
-          graph.bindKey("backspace", () => {
-            const cells = graph.getSelectedCells();
-            console.log(cells)
-            if (cells.length) {
-              graph.removeCells(cells);
-            }
-          });
+            //delete
+            graph.bindKey("backspace", () => {
+                const cells = graph.getSelectedCells();
+                console.log(cells)
+                if (cells.length) {
+                    graph.removeCells(cells);
+                }
+            });
 
-          // zoom
-          graph.bindKey(["ctrl+1", "meta+1"], () => {
-            const zoom = graph.zoom();
-            if (zoom < 1.5) {
-              graph.zoom(0.1);
-            }
-          });
-          graph.bindKey(["ctrl+2", "meta+2"], () => {
-            const zoom = graph.zoom();
-            if (zoom > 0.5) {
-              graph.zoom(-0.1);
-            }
-          });
+            // zoom
+            graph.bindKey(["ctrl+1", "meta+1"], () => {
+                const zoom = graph.zoom();
+                if (zoom < 1.5) {
+                    graph.zoom(0.1);
+                }
+            });
+            graph.bindKey(["ctrl+2", "meta+2"], () => {
+                const zoom = graph.zoom();
+                if (zoom > 0.5) {
+                    graph.zoom(-0.1);
+                }
+            });
         },
 
         initEvent() {
-            const { graph } = this;
+            const {graph} = this;
             const container = this.$refs.flowContainer;
             //鼠标移到组件上 显示连接点
             const showPorts = (ports, show) => {
@@ -411,31 +441,43 @@ export default {
                 showPorts(ports, false);
             });
             //鼠标双击节点
-            graph.on("node:dblclick", ({ e, x, y, node }) => {
-                this.cellId = node.id //保存节点Id
-                let cell = node.getAttrs()
-                let query = { //表单回显当前节点数据
-                    type: 'node',
-                    name: cell.label ? cell.label.text : '',
-                    fontColor: cell.label ? cell.label.fill : '',
-                    backgroundColor: cell.body ? cell.body.fill : '',
-                    borderColor: cell.body ? cell.body.stroke : '',
+            // graph.on("node:dblclick", ({ e, x, y, node }) => {
+            //     this.cellId = node.id //保存节点Id
+            //     let cell = node.getAttrs()
+            //     let query = { //表单回显当前节点数据
+            //         type: 'node',
+            //         name: cell.label ? cell.label.text : '',
+            //         fontColor: cell.label ? cell.label.fill : '',
+            //         backgroundColor: cell.body ? cell.body.fill : '',
+            //         borderColor: cell.body ? cell.body.stroke : '',
+            //     }
+            //     this.$refs.nameDrawer.openDrawer(query)
+            // });
+            // graph.on("edge:dblclick", ({ e, x, y, edge }) => {
+            //     this.cellId = edge.id //保存节点Id
+            //     const { attrs, labels } = edge.store.data //提取节点里的数据信息
+            //     let label = labels && labels.length > 0 ? labels[0].attrs.label : null
+            //
+            //     let query = { //表单回显当前节点数据
+            //         type: 'edge',
+            //         name: label ? label.text : '',
+            //         linkColor: attrs.line ? attrs.line.stroke : '',
+            //         linkFontColor: label ? label.fill : '',
+            //     }
+            //     this.$refs.nameDrawer.openDrawer(query)
+            // });
+            graph.on("node:click", e => {
+                let cell = e.cell
+                if (cell) {
+                    this.showAttrConfig = true;
+                    this.nodeFrmData = Object.assign(cell.data || {}, {
+                        isNode: cell._isNode,
+                        isEdge: cell._isEdge
+                    });
+                } else {
+                    this.showAttrConfig = false;
                 }
-                this.$refs.nameDrawer.openDrawer(query)
-            });
-            graph.on("edge:dblclick", ({ e, x, y, edge }) => {
-                this.cellId = edge.id //保存节点Id
-                const { attrs, labels } = edge.store.data //提取节点里的数据信息
-                let label = labels && labels.length > 0 ? labels[0].attrs.label : null
-
-                let query = { //表单回显当前节点数据
-                    type: 'edge',
-                    name: label ? label.text : '',
-                    linkColor: attrs.line ? attrs.line.stroke : '',
-                    linkFontColor: label ? label.fill : '',
-                }
-                this.$refs.nameDrawer.openDrawer(query)
-            });
+            })
         },
 
 
@@ -445,24 +487,24 @@ export default {
             if (node.isNode()) { //判断是否是属性节点
                 node.setAttrs( //设置节点属性
                     {
-                        label: { text: form.name, fill: form.fontColor }, //修改字体名称/颜色
-                        body: { fill: form.backgroundColor, stroke: form.borderColor } //修改背景色/边框色
+                        label: {text: form.name, fill: form.fontColor}, //修改字体名称/颜色
+                        body: {fill: form.backgroundColor, stroke: form.borderColor} //修改背景色/边框色
                     },
                 )
             } else {
                 node.setAttrs( //设置节点属性
                     //连接线颜色
-                    { line: { stroke: form.linkColor }, },
+                    {line: {stroke: form.linkColor},},
                 )
                 node.setLabels({
                     attrs: { //连接线字体/颜色
-                        label: { text: form.name, fill: form.linkFontColor },
+                        label: {text: form.name, fill: form.linkFontColor},
                     },
                 })
             }
         },
         handleClick(name) {
-            const { graph } = this
+            const {graph} = this
             switch (name) {
                 case 'zoomIn':
                     graph.zoom(0.1)
@@ -484,102 +526,142 @@ export default {
                     break
                 case 'export':
                     graph.toPNG((dataUri) => {
-                      // 下载
-                      DataUri.downloadDataUri(dataUri, 'chart.png')},
+                            // 下载
+                            DataUri.downloadDataUri(dataUri, 'chart.png')
+                        },
                         {
-                          backgroundColor:"#ffffff",
-                          padding: {
-                            top: 20,
-                            right: 30,
-                            bottom: 40,
-                            left: 50,
-                          },
+                            backgroundColor: "#ffffff",
+                            padding: {
+                                top: 20,
+                                right: 30,
+                                bottom: 40,
+                                left: 50,
+                            },
                         }
                     )
                     break
                 case 'change':
-                  this.change()
-                  break
+                    this.change()
+                    break
                 case 'getJson':
-                  this.getJson()
-                  break
+                    this.getJson()
+                    break
                 default:
                     break
             }
-        }
+        },
+        confirm() {
+            let graph = this.graph;
+            let selectedCell = graph.getSelectedCells()[0];
+            console.log(selectedCell)
+            selectedCell.setData(this.nodeFrmData);
+            let style = selectedCell.style;
+            if (selectedCell.shape === "html") {
+                let html = selectedCell.style.html;
+                let temDom = document.createElement("div");
+                temDom.innerHTML = style.html;
+                temDom.querySelector('[attr="name"]').innerText = this.nodeFrmData.name;
+                style.html = temDom.innerHTML;
+                selectedCell.setStyle(style);
+            } else {
+                console.log(selectedCell.data)
+                console.log(selectedCell.getData())
+                // selectedCell.style.label = this.nodeFrmData.name;
+            }
+            // graph.refresh(selectedCell);
+            this.showAttrConfig = false;
+        },
+        close() {
+            this.showAttrConfig = false;
+        },
     },
 };
 </script>
 
 <style lang="scss">
 #gridtest {
-  position: absolute;
-  padding: 10px 20px;
-  display: flex;
-  top: 0;
-  right: 300px;
-  align-items: center;
-  width: 1px;
-  //text-align: center;
-  text-align: left;
+    position: absolute;
+    padding: 10px 20px;
+    display: flex;
+    top: 0;
+    right: 300px;
+    align-items: center;
+    width: 1px;
+    //text-align: center;
+    text-align: left;
 }
+
 .flow-box {
     width: 100%;
     height: 100vh;
     display: flex;
     position: relative;
+
     .flow-tool {
         position: absolute;
         top: 0;
         right: 0;
     }
 }
+
 .graph-stencil {
     position: relative;
     width: 214px;
     height: 100%;
     border-right: 1px solid #dfe3e8;
 }
+
 .graph-container {
     flex: 1;
     height: 100%;
 }
-.graph-minimapcontainer{
-  position: fixed;
-  z-index: 999;
-  bottom: 20px;
-  right: 20px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+
+.graph-minimapcontainer {
+    position: fixed;
+    z-index: 999;
+    bottom: 20px;
+    right: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
+
 .x6-widget-stencil {
     background-color: #fff;
 }
+
 .x6-widget-stencil-title {
     background-color: #fff;
 }
+
 .x6-widget-stencil-group-title {
     background-color: #fff !important;
 }
+
 .x6-widget-transform {
     margin: -1px 0 0 -1px;
     padding: 0px;
     border: 1px solid #239edd;
 }
+
 .x6-widget-transform > div {
     border: 1px solid #239edd;
 }
+
 .x6-widget-transform > div:hover {
     background-color: #3dafe4;
 }
+
 .x6-widget-transform-active-handle {
     background-color: #3dafe4;
 }
+
 .x6-widget-transform-resize {
     border-radius: 0;
 }
+
 .x6-widget-selection-inner {
     border: 1px solid #239edd;
 }
+
 .x6-widget-selection-box {
     opacity: 0;
 }
