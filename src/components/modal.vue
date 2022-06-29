@@ -69,7 +69,7 @@ export default {
         border-bottom: 1px solid #e3e3e3;
     }
     .content {
-        padding: 10px 20px;
+        padding: 20px 20px;
         margin-right: 4px;
         flex: 1;
         overflow-y: auto;
@@ -81,11 +81,11 @@ export default {
         }
     }
     .footer {
-        flex: 0 0 80px;
-        padding: 0 20px;
+        flex: 0 0 30px;
+        padding: 200px 20px;
         display: flex;
         justify-content: flex-end;
-        align-items: center;
+        //align-items: center;
         border-top: 1px solid #e3e3e3;
     }
     .close {

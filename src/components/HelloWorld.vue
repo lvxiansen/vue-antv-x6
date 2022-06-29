@@ -14,13 +14,12 @@
                     <el-form
                         :model="nodeFrmData"
                         label-width="80px"
-                        label-position="left"
-                    >
+                        label-position="left">
                         <el-form-item label="名称" prop="name">
                             <el-input v-model="nodeFrmData.name"></el-input>
                         </el-form-item>
-                        <el-form-item label="属性1" prop="属性1">
-                            <el-input v-model="nodeFrmData.属性1"></el-input>
+                        <el-form-item label="id" prop="id">
+                            <el-input v-model="nodeFrmData.id"></el-input>
                         </el-form-item>
                         <el-form-item label="属性2" prop="属性2">
                             <el-input v-model="nodeFrmData.属性2"></el-input>
@@ -30,6 +29,7 @@
                 <span slot="footer">
           <el-button @click="close">取消</el-button>
           <el-button type="primary" @click="confirm">确定</el-button>
+          <el-button type="primary" @click="addPort">增加节点</el-button>
         </span>
             </modal>
         </slot>
@@ -57,6 +57,7 @@ export default {
             message: 0,
             showAttrConfig: false,
             nodeFrmData: {},
+            port: {}
         };
     },
     mounted() {
@@ -183,13 +184,18 @@ export default {
             let graph = this.graph
             // console.log(graph.toJSON())
             const nodes = graph.getNodes()
-            console.log("nodes:",nodes)
             const result = nodes.map(node => {
-                const {id, port} = node
-                console.log("node",node.data)
+                const {id} = node.id
+                // console.log("node--",node)
+                // console.log("getData--",node.getData())
+                const nodeId = node.getData().id || id
+                const nodeName = node.getData().name || id
+                const nodePort = node.port.ports
+                console.log("node:",node.port.ports)
                 return {
-                    id,
-                    port
+                    nodeId,
+                    nodeName,
+                    nodePort
                 }
             })
             return result
@@ -199,10 +205,15 @@ export default {
             // 获取所有边
             const edges = graph.getEdges()
             const result = edges.map(edge => {
+                const {id} = edge.id
+                const edgeId = edge.getData().id || id
+                const edgeName = edge.getData().name || id
                 return {
                     id: edge.id,
-                    source: edge.source.cell,
-                    target: edge.target.cell
+                    source: edge.source.port,
+                    target: edge.target.port,
+                    edgeId,
+                    edgeName
                 }
             })
             return result
@@ -224,10 +235,24 @@ export default {
                 stencilGraphWidth: 200,
                 stencilGraphHeight: 200,
                 collapsable: true,
+                groups:[
+                    {
+                        title:'基础流程图',
+                        name:'group1'
+                    },
+                    {
+                        title:'网络拓扑图',
+                        name:'group2',
+                        graphHeight: 250,
+                        layoutOptions: {
+                            rowHeight: 70,
+                        },
+                    },
+                ],
                 layoutOptions: {
-                    columns: 4,
-                    columnWidth: 48,
-                    rowHeight: 40,
+                    columns: 2,
+                    columnWidth: 60,
+                    rowHeight: 60,
                     marginY: 20,
                 },
                 getDropNode(node) {
@@ -245,86 +270,118 @@ export default {
         initShape() {
             //this其实是数据，这里是令graph = this.Grape
             const {graph, stencil} = this;
-            // Shape.Rect.define({
-            //   shape: 'aa-rect',
-            //   width: 60,
-            //   height: 30,
-            //   ports: {
-            //     groups: {
-            //       in: {
-            //         position: 'top',
-            //         label: {
-            //           position: 'top',
-            //         },
-            //         attrs: {
-            //           circle: {
-            //             r: 2,
-            //             magnet: true,
-            //             stroke: '#31d0c6',
-            //             strokeWidth: 2,
-            //             fill: '#fff',
-            //           },
-            //         },
-            //       },
-            //       out: {
-            //         position: 'bottom',
-            //         label: {
-            //           position: 'bottom',
-            //         },
-            //         attrs: {
-            //           circle: {
-            //             r: 2,
-            //             magnet: true,
-            //             stroke: '#31d0c6',
-            //             strokeWidth: 2,
-            //             fill: '#fff',
-            //           },
-            //         },
-            //       },
-            //     },
-            //     items: [
-            //       {
-            //         id: 'port1',
-            //         group: 'in',
-            //         attrs: {
-            //           text: { text: 'i1' },
-            //         },
-            //       },
-            //       {
-            //         id: 'port2',
-            //         group: 'in',
-            //         attrs: {
-            //           text: { text: 'i2' },
-            //         },
-            //       },
-            //       {
-            //         id: 'port3',
-            //         group: 'in',
-            //         attrs: {
-            //           text: { text: 'i3' },
-            //         },
-            //       },
-            //       {
-            //         id: 'port4',
-            //         group: 'out',
-            //         attrs: {
-            //           text: { text: 'o1' },
-            //         },
-            //       },
-            //       {
-            //         id: 'port5',
-            //         group: 'out',
-            //         attrs: {
-            //           text: { text: 'o2' },
-            //         },
-            //       },
-            //     ],
-            //   },
-            // })
-            //shape 名字对应shape.js中Graph.registerNode 第一个参数
+            this.port = {
+                groups: {
+                    po: {
+                        position: {
+                            name: 'ellipseSpread',
+                            args: {
+                                start: 0,
+                            },
+                        },
+
+                        label: {
+                            position: 'top',
+                        },
+                        attrs: {
+                            circle: {
+                                r: 3,
+                                magnet: true,
+                                stroke: '#31d0c6',
+                                strokeWidth: 2,
+                                fill: '#fff',
+                            },
+                        },
+                    },
+                },
+                items: [
+                    {
+                        id: 'port1',
+                        group: 'po',
+                        attrs: {
+                            text: {text: 'i1'},
+                        },
+                    },
+                    {
+                        id: 'port2',
+                        group: 'po',
+                        attrs: {
+                            text: {text: 'i2'},
+                        },
+                    },
+                    {
+                        id: 'port3',
+                        group: 'po',
+                        attrs: {
+                            text: {text: 'i3'},
+                        },
+                    },
+                    {
+                        id: 'port4',
+                        group: 'po',
+                        attrs: {
+                            text: {text: 'o1'},
+                        },
+                    },
+                    {
+                        id: 'port5',
+                        group: 'po',
+                        attrs: {
+                            text: {text: 'o2'},
+                        },
+                    },
+                ]
+            }
+            Graph.registerNode(
+                'custom-image',
+                {
+                    inherit: 'ellipse',
+                    width: 60,
+                    height: 60,
+                    markup: [
+                        {
+                            tagName: 'ellipse',
+                            selector: 'body',
+                        },
+                        {
+                            tagName: 'image',
+                        },
+                        {
+                            tagName: 'text',
+                            selector: 'label',
+                        },
+                    ],
+                    attrs: {
+                        body: {
+                            stroke:'#5F95FF',
+                            fill: '#5F95FF',
+                        },
+                        image: {
+                            width: 60,
+                            height: 60,
+                            refX: 13,
+                            refY: 16,
+                        },
+                        label: {
+                            refX: 3,
+                            refY: 2,
+                            textAnchor: 'left',
+                            textVerticalAnchor: 'top',
+                            fontSize: 12,
+                            fill: '#fff',
+                        },
+                    },
+                    ports: {...this.port},
+                },
+                true,
+            )
             const r1 = graph.createNode({
-                shape: "custom-rect",
-                label: "test",
+                // shape: 'custom-rect',
+                shape: 'ellipse',
+                // label: "test",
+                width: 60,
+                height: 20,
+                ports: this.port
             });
             const r2 = graph.createNode({
                 shape: "custom-rect",
@@ -346,7 +403,17 @@ export default {
             const r4 = graph.createNode({
                 shape: "custom-circle",
             });
-            stencil.load([r1, r2, r3, r4]);
+            const r5 = graph.createNode({
+                shape: 'custom-image',
+                label: 'Client',
+                attrs: {
+                    image: {
+                        'xlink:href': '../路由器.svg',
+                    },
+                },
+            })
+            stencil.load([r1, r2, r3, r4],'group1');
+            stencil.load([r5],'group2');
         },
 
         initKeyboard() {
@@ -478,8 +545,19 @@ export default {
                     this.showAttrConfig = false;
                 }
             })
+            graph.on("edge:click", e => {
+                let cell = e.cell
+                if (cell) {
+                    this.showAttrConfig = true;
+                    this.nodeFrmData = Object.assign(cell.data || {}, {
+                        isNode: cell._isNode,
+                        isEdge: cell._isEdge
+                    });
+                } else {
+                    this.showAttrConfig = false;
+                }
+            })
         },
-
 
         editCellName(form) {
             //修改节点信息
@@ -553,23 +631,46 @@ export default {
         confirm() {
             let graph = this.graph;
             let selectedCell = graph.getSelectedCells()[0];
-            console.log(selectedCell)
             selectedCell.setData(this.nodeFrmData);
             let style = selectedCell.style;
-            if (selectedCell.shape === "html") {
-                let html = selectedCell.style.html;
-                let temDom = document.createElement("div");
-                temDom.innerHTML = style.html;
-                temDom.querySelector('[attr="name"]').innerText = this.nodeFrmData.name;
-                style.html = temDom.innerHTML;
-                selectedCell.setStyle(style);
-            } else {
-                console.log(selectedCell.data)
-                console.log(selectedCell.getData())
-                // selectedCell.style.label = this.nodeFrmData.name;
-            }
+            // if (selectedCell.shape === "html") {
+            //     let html = selectedCell.style.html;
+            //     let temDom = document.createElement("div");
+            //     temDom.innerHTML = style.html;
+            //     temDom.querySelector('[attr="name"]').innerText = this.nodeFrmData.name;
+            //     // selectedCell.id
+            //     style.html = temDom.innerHTML;
+            //     selectedCell.setStyle(style);
+            // } else {
+            //     console.log(selectedCell.data)
+            //     console.log(selectedCell.getData())
+            //     // selectedCell.style.label = this.nodeFrmData.name;
+            // }
             // graph.refresh(selectedCell);
             this.showAttrConfig = false;
+        },
+        addPort() {
+            let graph = this.graph;
+            let selectedCell = graph.getSelectedCells()[0];
+            let allPorts = selectedCell.getPorts()
+            let length = allPorts.length
+            // console.log(allPorts)
+            // console.log(allPorts.length)
+            // console.log(selectedCell.attrs)
+            // console.log(this.port)
+            const addpp = () => {
+                selectedCell.addPort({
+                    id: 'port' + ++length,
+                    //不能用this.popo
+                    group: 'po',
+                    attrs: {
+                        text: {
+                            text: "n" + length,
+                        }
+                    },
+                })
+            }
+            addpp()
         },
         close() {
             this.showAttrConfig = false;
