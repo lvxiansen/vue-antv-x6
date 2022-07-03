@@ -21,19 +21,139 @@
                         <el-form-item label="id" prop="id">
                             <el-input v-model="nodeFrmData.id"></el-input>
                         </el-form-item>
-                        <el-form-item label="属性2" prop="属性2">
-                            <el-input v-model="nodeFrmData.属性2"></el-input>
+                        <el-form-item label="data" prop="data">
+                            <el-input v-model="nodeFrmData.data"></el-input>
                         </el-form-item>
                     </el-form>
                 </div>
                 <span slot="footer">
-          <el-button @click="close">取消</el-button>
-          <el-button type="primary" @click="confirm">确定</el-button>
-          <el-button type="primary" @click="addPort">增加节点</el-button>
-        </span>
+                  <el-button @click="close">取消</el-button>
+                  <el-button type="primary" @click="confirm">确定</el-button>
+                  <el-button type="primary" @click="addPort">增加节点</el-button>
+                  <el-button type="primary"  @click="viewPort">查看端口</el-button>
+                  <el-button type="primary"  @click="viewEdge">查看连线</el-button>
+                </span>
             </modal>
         </slot>
         <div class="graph-minimapcontainer" ref="flowminimapContainer"></div>
+        <div>
+            <el-dialog :visible.sync="portTableDialogVisible" width="30%">
+                <el-table  width="30%"
+                           :data="allPort"
+                >
+                    <el-table-column
+                        prop = "id"
+                        label="id"
+                        width="100">
+                        <template scope="scope">
+                            <span>{{scope.row.id}}</span >
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                        prop="group"
+                        label="group"
+                        width="100">
+                        <template scope="scope">
+                            <span>{{scope.row.group}}</span >
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                        prop="data"
+                        label="data"
+                        width="100">
+                        <template scope="scope">
+                            <span>{{scope.row.data}}</span >
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                        fixed="right"
+                        label="操作"
+                        width="100">
+                        <template scope="scope">
+                            <el-button @click="portTableRowEdit(scope.row,scope.$index)" type="text" size="small">修改</el-button>
+                            <el-button @click="portTableRowDelete(scope.row,scope.$index)" type="text" size="small">删除</el-button>
+                        </template>
+                    </el-table-column>
+                </el-table>
+            </el-dialog>
+            <!--弹窗数据-->
+            <el-dialog title="修改" :visible.sync="PortFormDialogVisible">
+                <el-form :model="editPortObj">
+                    <el-form-item label="id">
+                        <el-input v-model="editPortObj.id" auto-complete="off"></el-input>
+                    </el-form-item>
+                    <el-form-item label="group">
+                        <el-input v-model="editPortObj.group" auto-complete="off"></el-input>
+                    </el-form-item>
+                    <el-form-item label="data">
+                        <el-input v-model="editPortObj.data" auto-complete="off"></el-input>
+                    </el-form-item>
+                </el-form>
+                <div slot="footer" class="dialog-footer">
+                    <el-button @click="PortFormDialogVisible = false">取 消</el-button>
+                    <el-button type="primary" @click="portTableRowEditDo">确 定</el-button>
+                </div>
+            </el-dialog>
+        </div>
+        <div>
+            <el-dialog :visible.sync="edgeTableDialogVisible" width="30%">
+                <el-table  width="30%"
+                           :data="allEdge"
+                >
+                    <el-table-column
+                        prop = "sourcePort"
+                        label="sourcePort"
+                        width="100">
+                        <template scope="scope">
+                            <span>{{scope.row.sourcePort}}</span >
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                        prop="targetPort"
+                        label="targetPort"
+                        width="100">
+                        <template scope="scope">
+                            <span>{{scope.row.targetPort}}</span >
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                        prop="data"
+                        label="data"
+                        width="100">
+                        <template scope="scope">
+                            <span>{{scope.row.data}}</span >
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                        fixed="right"
+                        label="操作"
+                        width="100">
+                        <template scope="scope">
+                            <el-button @click="edgeTableRowEdit(scope.row,scope.$index)" type="text" size="small">修改</el-button>
+                            <el-button @click="edgeTableRowDelete(scope.row,scope.$index)" type="text" size="small">删除</el-button>
+                        </template>
+                    </el-table-column>
+                </el-table>
+            </el-dialog>
+            <!--弹窗数据-->
+            <el-dialog title="修改" :visible.sync="edgeFormDialogVisible">
+                <el-form :model="editPortObj">
+                    <el-form-item label="id">
+                        <el-input v-model="editPortObj.id" auto-complete="off"></el-input>
+                    </el-form-item>
+                    <el-form-item label="group">
+                        <el-input v-model="editPortObj.group" auto-complete="off"></el-input>
+                    </el-form-item>
+                    <el-form-item label="data">
+                        <el-input v-model="editPortObj.data" auto-complete="off"></el-input>
+                    </el-form-item>
+                </el-form>
+                <div slot="footer" class="dialog-footer">
+                    <el-button @click="edgeFormDialogVisible = false">取 消</el-button>
+                    <el-button type="primary" @click="edgeTableRowEditDo">确 定</el-button>
+                </div>
+            </el-dialog>
+        </div>
     </div>
 </template>
 
@@ -45,6 +165,7 @@ import nameDrawer from "./nameDrawer"
 import toolbar from "./toolbar"
 import modal from "./modal"
 import {DataUri} from '@antv/x6'
+// import tableData from './tableData'
 
 export default {
     components: {nameDrawer, toolbar, modal},
@@ -57,13 +178,71 @@ export default {
             message: 0,
             showAttrConfig: false,
             nodeFrmData: {},
-            port: {}
+            allPort:[],
+            allEdge:[],
+            port: {},
+            portTableDialogVisible : false,
+            PortFormDialogVisible:false,
+            editPortObj:{
+                id:"",
+                group:"",
+                data:""
+            },
+            edgeTableDialogVisible : false,
+            edgeFormDialogVisible:false,
+            editEdgeObj:{
+                sourcePort:"",
+                targetPort:"",
+                data:""
+            }
         };
     },
     mounted() {
         this.initGraph();
     },
     methods: {
+        portTableRowEdit(row, index) {
+            //记录索引
+            this.listIndex=index;
+            //记录数据
+            this.editEdgeObj=row;
+            //显示弹窗
+            this.PortFormDialogVisible=true;
+        },
+        edgeTableRowEdit(row, index) {
+            //记录索引
+            this.listIndex=index;
+            //记录数据
+            this.editPortObj=row;
+            //显示弹窗
+            this.edgeFormDialogVisible=true;
+        },
+        portTableRowEditDo(){
+            let index=this.listIndex
+            //根据索引，赋值到list制定的数
+            this.allPort[index]=this.editPortObj;
+            //关闭弹窗
+            this.PortFormDialogVisible=false;
+        },
+        edgeTableRowEditDo(){
+            let index=this.listIndex
+            //根据索引，赋值到list制定的数
+            this.allEdge[index]=this.editEdgeObj;
+            //关闭弹窗
+            this.edgeFormDialogVisible=false;
+        },
+        openPortReport() {
+            this.portTableDialogVisible = true
+        },
+        openEdgeReport() {
+            this.edgeTableDialogVisible = true
+        },
+        portTableRowDelete(row) {
+            this.allPort.splice(row,1)
+        },
+        edgeTableRowDelete(row) {
+            this.allEdge.splice(row,1)
+        },
         initGraph() {
             // #region 初始化画布
             this.graph = new Graph({
@@ -191,7 +370,6 @@ export default {
                 const nodeId = node.getData().id || id
                 const nodeName = node.getData().name || id
                 const nodePort = node.port.ports
-                console.log("node:",node.port.ports)
                 return {
                     nodeId,
                     nodeName,
@@ -221,6 +399,7 @@ export default {
         getJson() {
             let atoms = {nodes: this.getNode(), edges: this.getEdge()}
             console.log(atoms)
+            console.log("table:",this.allPort)
             return atoms
         },
         /*
@@ -235,14 +414,14 @@ export default {
                 stencilGraphWidth: 200,
                 stencilGraphHeight: 200,
                 collapsable: true,
-                groups:[
+                groups: [
                     {
-                        title:'基础流程图',
-                        name:'group1'
+                        title: '基础流程图',
+                        name: 'group1'
                     },
                     {
-                        title:'网络拓扑图',
-                        name:'group2',
+                        title: '网络拓扑图',
+                        name: 'group2',
                         graphHeight: 250,
                         layoutOptions: {
                             rowHeight: 70,
@@ -279,7 +458,6 @@ export default {
                                 start: 0,
                             },
                         },
-
                         label: {
                             position: 'top',
                         },
@@ -294,43 +472,43 @@ export default {
                         },
                     },
                 },
-                items: [
-                    {
-                        id: 'port1',
-                        group: 'po',
-                        attrs: {
-                            text: {text: 'i1'},
-                        },
-                    },
-                    {
-                        id: 'port2',
-                        group: 'po',
-                        attrs: {
-                            text: {text: 'i2'},
-                        },
-                    },
-                    {
-                        id: 'port3',
-                        group: 'po',
-                        attrs: {
-                            text: {text: 'i3'},
-                        },
-                    },
-                    {
-                        id: 'port4',
-                        group: 'po',
-                        attrs: {
-                            text: {text: 'o1'},
-                        },
-                    },
-                    {
-                        id: 'port5',
-                        group: 'po',
-                        attrs: {
-                            text: {text: 'o2'},
-                        },
-                    },
-                ]
+                // items: [
+                //     {
+                //         id: 'port1',
+                //         group: 'po',
+                //         attrs: {
+                //             text: {text: 'i1'},
+                //         },
+                //     },
+                //     {
+                //         id: 'port2',
+                //         group: 'po',
+                //         attrs: {
+                //             text: {text: 'i2'},
+                //         },
+                //     },
+                //     {
+                //         id: 'port3',
+                //         group: 'po',
+                //         attrs: {
+                //             text: {text: 'i3'},
+                //         },
+                //     },
+                //     {
+                //         id: 'port4',
+                //         group: 'po',
+                //         attrs: {
+                //             text: {text: 'o1'},
+                //         },
+                //     },
+                //     {
+                //         id: 'port5',
+                //         group: 'po',
+                //         attrs: {
+                //             text: {text: 'o2'},
+                //         },
+                //     },
+                // ],
             }
             Graph.registerNode(
                 'custom-image',
@@ -353,7 +531,7 @@ export default {
                     ],
                     attrs: {
                         body: {
-                            stroke:'#5F95FF',
+                            stroke: '#5F95FF',
                             fill: '#5F95FF',
                         },
                         image: {
@@ -381,7 +559,126 @@ export default {
                 // label: "test",
                 width: 60,
                 height: 20,
-                ports: this.port
+                markup: [
+                    {
+                        tagName: 'rect',
+                        selector: 'body',
+                    },
+                    {
+                        tagName: 'text',
+                        selector: 'label',
+                    },
+                    {
+                        tagName: 'g',
+                        children: [
+                            {
+                                tagName: 'text',
+                                selector: 'btnText',
+                            },
+                            {
+                                tagName: 'rect',
+                                selector: 'btn',
+                            },
+                        ],
+                    },
+                ],
+                attrs: {
+                    // btn: {
+                    //     refX: '100%',
+                    //     refX2: -28,
+                    //     y: 4,
+                    //     width: 24,
+                    //     height: 18,
+                    //     rx: 10,
+                    //     ry: 10,
+                    //     fill: 'rgba(255,255,0,0.01)',
+                    //     stroke: 'red',
+                    //     cursor: 'pointer',
+                    //     event: 'cell:delete',
+                    // },
+                    // btnText: {
+                    //     fontSize: 14,
+                    //     fill: 'red',
+                    //     text: 'x',
+                    //     refX: '100%',
+                    //     refX2: -19,
+                    //     y: 17,
+                    //     cursor: 'pointer',
+                    //     pointerEvent: 'none',
+                    // },
+                    body: {
+                        fill: '#ffffff',
+                        stroke: '#333333',
+                        strokeWidth: 2,
+                        refWidth: '100%',
+                        refHeight: '100%',
+                    },
+                    label: {
+                        fontSize: 14,
+                        fill: '#333333',
+                        refX: '50%',
+                        refY: '50%',
+                        textAnchor: 'middle',
+                        textVerticalAnchor: 'middle',
+                    },
+                },
+                ports: [
+                    {
+                        id: 'port-1',
+                        attrs: {
+                            // event: 'port:click',
+                            // magnet: true,
+                            circle: {
+                                r: 3,
+                                magnet: true,
+                                stroke: '#31d0c6',
+                                strokeWidth: 2,
+                                fill: '#fff',
+                            },
+                            btn: {
+                                refX: '100%',
+                                refX2: -28,
+                                y: 4,
+                                width: 24,
+                                height: 18,
+                                rx: 10,
+                                ry: 10,
+                                fill: 'rgba(255,255,0,0.01)',
+                                stroke: 'red',
+                                cursor: 'pointer',
+                                event: 'cell:delete',
+                            },
+                            btnText: {
+                                fontSize: 14,
+                                fill: 'red',
+                                text: 'x',
+                                refX: '100%',
+                                refX2: -19,
+                                y: 17,
+                                cursor: 'pointer',
+                                pointerEvent: 'none',
+                            },
+                            body: {
+                                fill: '#ffffff',
+                                stroke: '#333333',
+                                strokeWidth: 2,
+                                refWidth: '100%',
+                                refHeight: '100%',
+                            },
+                            label: {
+                                fontSize: 14,
+                                fill: '#333333',
+                                refX: '50%',
+                                refY: '50%',
+                                textAnchor: 'middle',
+                                textVerticalAnchor: 'middle',
+                            },
+                            // event: console.log(this),
+                            text: {
+                                text: this.cell,
+                            }
+                        }
+                    }]
             });
             const r2 = graph.createNode({
                 shape: "custom-rect",
@@ -412,8 +709,8 @@ export default {
                     },
                 },
             })
-            stencil.load([r1, r2, r3, r4],'group1');
-            stencil.load([r5],'group2');
+            stencil.load([r1, r2, r3, r4], 'group1');
+            stencil.load([r5], 'group2');
         },
 
         initKeyboard() {
@@ -535,6 +832,7 @@ export default {
             // });
             graph.on("node:click", e => {
                 let cell = e.cell
+                console.log("node")
                 if (cell) {
                     this.showAttrConfig = true;
                     this.nodeFrmData = Object.assign(cell.data || {}, {
@@ -557,6 +855,26 @@ export default {
                     this.showAttrConfig = false;
                 }
             })
+            graph.on("port:click", e => {
+                console.log("bbbbbbbbbb")
+                let cell = e.cell
+                console.log("aaaaaaa")
+                console.log(cell)
+            })
+            graph.on("cell:delete", ({view, e}) => {
+                console.log(view.cell.ports)
+                console.log(view)
+                e.stopPropagation()
+                // view.cell.remove()
+            })
+            // graph.on("node:ports:added",e => {
+            //     console.log("hhhhhhhh")
+            //     console.log(e)
+            // })
+            // graph.on("node:change:ports",e => {
+            //     console.log("hhhhhhhh")
+            //     console.log(e.current)
+            // })
         },
 
         editCellName(form) {
@@ -654,7 +972,6 @@ export default {
             let selectedCell = graph.getSelectedCells()[0];
             let allPorts = selectedCell.getPorts()
             let length = allPorts.length
-            // console.log(allPorts)
             // console.log(allPorts.length)
             // console.log(selectedCell.attrs)
             // console.log(this.port)
@@ -666,11 +983,49 @@ export default {
                     attrs: {
                         text: {
                             text: "n" + length,
-                        }
+                        },
+                        event: 'port:click',
                     },
+                    data: 100,
                 })
             }
             addpp()
+            console.log(allPorts)
+        },
+        viewPort() {
+            this.portTableDialogVisible = true
+            let graph = this.graph;
+            let selectedCell = graph.getSelectedCells()[0];
+            let allPorts = selectedCell.getPorts()
+            this.allPort = []
+            for(let i=0;i<allPorts.length;i++) {
+                let temp = {
+                    id:allPorts[i].id,
+                    group:allPorts[i].group,
+                    data:allPorts[i].data
+                }
+                this.allPort.push(temp)
+            }
+            console.log(allPorts.length)
+            this.openPortReport()
+        },
+        viewEdge() {
+            // console.log("aaaaa")
+            this.edgeTableDialogVisible = true
+            // let graph = this.graph;
+            // let selectedCell = graph.getSelectedCells()[0];
+            let allEdges = this.getEdge()
+            this.allEdge = []
+            for(let i=0;i<allEdges.length;i++) {
+                let temp = {
+                    sourcePort:allEdges[i].source,
+                    targetPort:allEdges[i].target,
+                    data:allEdges[i].edgeName
+                }
+                this.allEdge.push(temp)
+            }
+            console.log(allEdges)
+            this.openEdgeReport()
         },
         close() {
             this.showAttrConfig = false;
@@ -766,4 +1121,5 @@ export default {
 .x6-widget-selection-box {
     opacity: 0;
 }
+
 </style>
