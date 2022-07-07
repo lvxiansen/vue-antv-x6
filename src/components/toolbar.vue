@@ -27,6 +27,9 @@
       <el-tooltip class="item" effect="dark" content="序列化" placement="top-start">
         <i class="el-icon-download" @click="handleClick('getJson')"></i>
       </el-tooltip>
+        <el-tooltip class="item" effect="dark" content="导入数据" placement="top-start">
+            <i class="el-icon-download" @click="handleClick('graphToJson')"></i>
+        </el-tooltip>
     </div>
 </template>
 

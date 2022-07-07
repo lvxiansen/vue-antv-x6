@@ -30,23 +30,25 @@
                   <el-button @click="close">取消</el-button>
                   <el-button type="primary" @click="confirm">确定</el-button>
                   <el-button type="primary" @click="addPort">增加节点</el-button>
-                  <el-button type="primary"  @click="viewPort">查看端口</el-button>
-                  <el-button type="primary"  @click="viewEdge">查看连线</el-button>
+                  <el-button type="primary" @click="viewPort">查看端口</el-button>
+                  <el-button type="primary" @click="viewEdge">查看连线</el-button>
+                  <el-button type="primary" @click="getAllJson">转为json</el-button>
                 </span>
             </modal>
         </slot>
         <div class="graph-minimapcontainer" ref="flowminimapContainer"></div>
+        <!--节点的表格和表单-->
         <div>
             <el-dialog :visible.sync="portTableDialogVisible" width="30%">
-                <el-table  width="30%"
-                           :data="allPort"
+                <el-table width="30%"
+                          :data="allPort"
                 >
                     <el-table-column
-                        prop = "id"
+                        prop="id"
                         label="id"
                         width="100">
                         <template scope="scope">
-                            <span>{{scope.row.id}}</span >
+                            <span>{{ scope.row.id }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column
@@ -54,7 +56,7 @@
                         label="group"
                         width="100">
                         <template scope="scope">
-                            <span>{{scope.row.group}}</span >
+                            <span>{{ scope.row.group }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column
@@ -62,7 +64,7 @@
                         label="data"
                         width="100">
                         <template scope="scope">
-                            <span>{{scope.row.data}}</span >
+                            <span>{{ scope.row.data }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column
@@ -70,13 +72,14 @@
                         label="操作"
                         width="100">
                         <template scope="scope">
-                            <el-button @click="portTableRowEdit(scope.row,scope.$index)" type="text" size="small">修改</el-button>
-                            <el-button @click="portTableRowDelete(scope.row,scope.$index)" type="text" size="small">删除</el-button>
+                            <el-button @click="portTableRowEdit(scope.row,scope.$index)" type="text" size="small">修改
+                            </el-button>
+                            <el-button @click="portTableRowDelete(scope.row,scope.$index)" type="text" size="small">删除
+                            </el-button>
                         </template>
                     </el-table-column>
                 </el-table>
             </el-dialog>
-            <!--弹窗数据-->
             <el-dialog title="修改" :visible.sync="PortFormDialogVisible">
                 <el-form :model="editPortObj">
                     <el-form-item label="id">
@@ -95,17 +98,18 @@
                 </div>
             </el-dialog>
         </div>
+        <!--边的表格和表单-->
         <div>
             <el-dialog :visible.sync="edgeTableDialogVisible" width="30%">
-                <el-table  width="30%"
-                           :data="allEdge"
+                <el-table width="30%"
+                          :data="allEdge"
                 >
                     <el-table-column
-                        prop = "sourcePort"
+                        prop="sourcePort"
                         label="sourcePort"
                         width="100">
                         <template scope="scope">
-                            <span>{{scope.row.sourcePort}}</span >
+                            <span>{{ scope.row.sourcePort }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column
@@ -113,7 +117,7 @@
                         label="targetPort"
                         width="100">
                         <template scope="scope">
-                            <span>{{scope.row.targetPort}}</span >
+                            <span>{{ scope.row.targetPort }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column
@@ -121,7 +125,7 @@
                         label="data"
                         width="100">
                         <template scope="scope">
-                            <span>{{scope.row.data}}</span >
+                            <span>{{ scope.row.data }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column
@@ -129,13 +133,14 @@
                         label="操作"
                         width="100">
                         <template scope="scope">
-                            <el-button @click="edgeTableRowEdit(scope.row,scope.$index)" type="text" size="small">修改</el-button>
-                            <el-button @click="edgeTableRowDelete(scope.row,scope.$index)" type="text" size="small">删除</el-button>
+                            <el-button @click="edgeTableRowEdit(scope.row,scope.$index)" type="text" size="small">修改
+                            </el-button>
+                            <el-button @click="edgeTableRowDelete(scope.row,scope.$index)" type="text" size="small">删除
+                            </el-button>
                         </template>
                     </el-table-column>
                 </el-table>
             </el-dialog>
-            <!--弹窗数据-->
             <el-dialog title="修改" :visible.sync="edgeFormDialogVisible">
                 <el-form :model="editPortObj">
                     <el-form-item label="id">
@@ -154,11 +159,78 @@
                 </div>
             </el-dialog>
         </div>
+
+        <!--单个节点port的表单-->
+        <div>
+            <el-dialog :visible.sync="singlePortFormVisible" width="30%">
+                <el-table width="30%"
+                          :data="allEdge"
+                >
+                    <el-table-column
+                        prop="sourcePort"
+                        label="sourcePort"
+                        width="100">
+                        <template scope="scope">
+                            <span>{{ scope.row.sourcePort }}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                        prop="targetPort"
+                        label="targetPort"
+                        width="100">
+                        <template scope="scope">
+                            <span>{{ scope.row.targetPort }}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                        prop="data"
+                        label="data"
+                        width="100">
+                        <template scope="scope">
+                            <span>{{ scope.row.data }}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column
+                        fixed="right"
+                        label="操作"
+                        width="100">
+                        <template scope="scope">
+                            <el-button @click="edgeTableRowEdit(scope.row,scope.$index)" type="text" size="small">修改
+                            </el-button>
+                            <el-button @click="edgeTableRowDelete(scope.row,scope.$index)" type="text" size="small">删除
+                            </el-button>
+                        </template>
+                    </el-table-column>
+                </el-table>
+            </el-dialog>
+            <el-dialog title="修改" :visible.sync="edgeFormDialogVisible">
+                <el-form :model="editPortObj">
+                    <el-form-item label="id">
+                        <el-input v-model="editPortObj.id" auto-complete="off"></el-input>
+                    </el-form-item>
+                    <el-form-item label="group">
+                        <el-input v-model="editPortObj.group" auto-complete="off"></el-input>
+                    </el-form-item>
+                    <el-form-item label="data">
+                        <el-input v-model="editPortObj.data" auto-complete="off"></el-input>
+                    </el-form-item>
+                </el-form>
+                <div slot="footer" class="dialog-footer">
+                    <el-button @click="edgeFormDialogVisible = false">取 消</el-button>
+                    <el-button type="primary" @click="edgeTableRowEditDo">确 定</el-button>
+                </div>
+            </el-dialog>
+        </div>
+
+        <el-tooltip content="xxx" value popper-class="tooltip-widget">
+            <span style="position: relative; left: -1000px; top: -1000px"/>
+        </el-tooltip>
     </div>
 </template>
 
 <script>
 import {Graph, Shape, Addon} from "@antv/x6";
+import {GridLayout} from "@antv/layout";
 import "@antv/x6-vue-shape";
 import "./shape";
 import nameDrawer from "./nameDrawer"
@@ -166,6 +238,8 @@ import toolbar from "./toolbar"
 import modal from "./modal"
 import {DataUri} from '@antv/x6'
 // import tableData from './tableData'
+import testData from "../../public/data.json"
+
 
 export default {
     components: {nameDrawer, toolbar, modal},
@@ -178,23 +252,24 @@ export default {
             message: 0,
             showAttrConfig: false,
             nodeFrmData: {},
-            allPort:[],
-            allEdge:[],
+            allPort: [],
+            allEdge: [],
             port: {},
-            portTableDialogVisible : false,
-            PortFormDialogVisible:false,
-            editPortObj:{
-                id:"",
-                group:"",
-                data:""
+            portTableDialogVisible: false,
+            PortFormDialogVisible: false,
+            editPortObj: {
+                id: "",
+                group: "",
+                data: ""
             },
-            edgeTableDialogVisible : false,
-            edgeFormDialogVisible:false,
-            editEdgeObj:{
-                sourcePort:"",
-                targetPort:"",
-                data:""
-            }
+            edgeTableDialogVisible: false,
+            edgeFormDialogVisible: false,
+            editEdgeObj: {
+                sourcePort: "",
+                targetPort: "",
+                data: ""
+            },
+            singlePortFormVisible: false,
         };
     },
     mounted() {
@@ -203,33 +278,33 @@ export default {
     methods: {
         portTableRowEdit(row, index) {
             //记录索引
-            this.listIndex=index;
+            this.listIndex = index;
             //记录数据
-            this.editEdgeObj=row;
+            this.editEdgeObj = row;
             //显示弹窗
-            this.PortFormDialogVisible=true;
+            this.PortFormDialogVisible = true;
         },
         edgeTableRowEdit(row, index) {
             //记录索引
-            this.listIndex=index;
+            this.listIndex = index;
             //记录数据
-            this.editPortObj=row;
+            this.editPortObj = row;
             //显示弹窗
-            this.edgeFormDialogVisible=true;
+            this.edgeFormDialogVisible = true;
         },
-        portTableRowEditDo(){
-            let index=this.listIndex
+        portTableRowEditDo() {
+            let index = this.listIndex
             //根据索引，赋值到list制定的数
-            this.allPort[index]=this.editPortObj;
+            this.allPort[index] = this.editPortObj;
             //关闭弹窗
-            this.PortFormDialogVisible=false;
+            this.PortFormDialogVisible = false;
         },
-        edgeTableRowEditDo(){
-            let index=this.listIndex
+        edgeTableRowEditDo() {
+            let index = this.listIndex
             //根据索引，赋值到list制定的数
-            this.allEdge[index]=this.editEdgeObj;
+            this.allEdge[index] = this.editEdgeObj;
             //关闭弹窗
-            this.edgeFormDialogVisible=false;
+            this.edgeFormDialogVisible = false;
         },
         openPortReport() {
             this.portTableDialogVisible = true
@@ -238,10 +313,10 @@ export default {
             this.edgeTableDialogVisible = true
         },
         portTableRowDelete(row) {
-            this.allPort.splice(row,1)
+            this.allPort.splice(row, 1)
         },
         edgeTableRowDelete(row) {
-            this.allEdge.splice(row,1)
+            this.allEdge.splice(row, 1)
         },
         initGraph() {
             // #region 初始化画布
@@ -338,8 +413,53 @@ export default {
                     enabled: true,
                     container: this.$refs.flowminimapContainer,
                     scalable: true
-                }
+                },
+                onPortRendered(args) {
+                    // console.log(args)
+                    // console.log(args.port.id)
+                    const contentContainer = args.contentContainer
+                    // //略过标签时显示
+                    // const labelContainer = args.labelContainer
+                    // labelContainer.addEventListener("mouseenter", (e) => {
+                    //     console.log("aaa")
+                    // });
+                    // this.viewSinglePort()
+                    //如果是e，this就是graph.如果是(),就是contentContainer，也就是circle这个元素
+                    contentContainer.addEventListener("mouseenter", function (e){
+                        const node = args.node
+                        const port = args.port
+                        console.log("portID",port.id)
+                        // console.log(args.getPortByID(args.node.port.id))
+                        let theport = node.getPort(port.id)
+                        theport.data  = 200
+                        console.log("port",port)
+                        console.log("theport",theport)
+                        // aatemp.singlePortFormVisible = true
+                        // const tooltip = document.querySelector(".tooltip-widget");
+                        // if (tooltip) {
+                        //     tooltip.innerHTML = args.port.id + '<br>' + args.port.data;
+                        //     setTimeout(() => {
+                        //         tooltip.style.left = `${
+                        //             e.clientX - tooltip.offsetWidth / 2 + 5
+                        //         }px`;
+                        //         tooltip.style.top = `${e.clientY}px`;
+                        //     }, 20);
+                        // }
+                    });
+                    contentContainer.addEventListener("mouseleave", () => {
+                        setTimeout(() => {
+                            const tooltip = document.querySelector(".tooltip-widget");
+                            if (tooltip) {
+                                tooltip.style.left = "-1000px";
+                                tooltip.style.top = "-1000px";
+                            }
+                        }, 30);
+                    });
+                    // console.log(this)
+                    // this.viewSinglePort()
+                },
             });
+            // console.log(this)
             this.initStencil(); //初始化组件菜单栏 左边的
             this.initKeyboard(); //工具栏
             this.initEvent(); //鼠标移到组件上 显示连接点
@@ -399,7 +519,7 @@ export default {
         getJson() {
             let atoms = {nodes: this.getNode(), edges: this.getEdge()}
             console.log(atoms)
-            console.log("table:",this.allPort)
+            console.log("table:", this.allPort)
             return atoms
         },
         /*
@@ -463,7 +583,7 @@ export default {
                         },
                         attrs: {
                             circle: {
-                                r: 3,
+                                r: 10,
                                 magnet: true,
                                 stroke: '#31d0c6',
                                 strokeWidth: 2,
@@ -472,14 +592,16 @@ export default {
                         },
                     },
                 },
-                // items: [
-                //     {
-                //         id: 'port1',
-                //         group: 'po',
-                //         attrs: {
-                //             text: {text: 'i1'},
-                //         },
-                //     },
+                items: [
+                    {
+                        id: 'port1',
+                        group: 'po',
+                        attrs: {
+                            text: {text: 'i1'},
+                        },
+                        data:100,
+                    },
+                ]
                 //     {
                 //         id: 'port2',
                 //         group: 'po',
@@ -835,6 +957,9 @@ export default {
                 console.log("node")
                 if (cell) {
                     this.showAttrConfig = true;
+                    console.log(cell.data)
+                    console.log(cell._isNode)
+                    console.log(cell._isEdge)
                     this.nodeFrmData = Object.assign(cell.data || {}, {
                         isNode: cell._isNode,
                         isEdge: cell._isEdge
@@ -942,6 +1067,9 @@ export default {
                 case 'getJson':
                     this.getJson()
                     break
+                case 'graphToJson':
+                    this.graphToJson()
+                    break
                 default:
                     break
             }
@@ -998,11 +1126,11 @@ export default {
             let selectedCell = graph.getSelectedCells()[0];
             let allPorts = selectedCell.getPorts()
             this.allPort = []
-            for(let i=0;i<allPorts.length;i++) {
+            for (let i = 0; i < allPorts.length; i++) {
                 let temp = {
-                    id:allPorts[i].id,
-                    group:allPorts[i].group,
-                    data:allPorts[i].data
+                    id: allPorts[i].id,
+                    group: allPorts[i].group,
+                    data: allPorts[i].data
                 }
                 this.allPort.push(temp)
             }
@@ -1016,20 +1144,109 @@ export default {
             // let selectedCell = graph.getSelectedCells()[0];
             let allEdges = this.getEdge()
             this.allEdge = []
-            for(let i=0;i<allEdges.length;i++) {
+            for (let i = 0; i < allEdges.length; i++) {
                 let temp = {
-                    sourcePort:allEdges[i].source,
-                    targetPort:allEdges[i].target,
-                    data:allEdges[i].edgeName
+                    sourcePort: allEdges[i].source,
+                    targetPort: allEdges[i].target,
+                    data: allEdges[i].edgeName
                 }
                 this.allEdge.push(temp)
             }
             console.log(allEdges)
             this.openEdgeReport()
         },
+        viewSinglePort() {
+            console.log("bb")
+            this.singlePortFormVisible = true
+        },
         close() {
             this.showAttrConfig = false;
         },
+        layout(data) {
+            // preprocess
+            const model = {
+                nodes: [],
+                edges: []
+            };
+            let tmp;
+            if (data.cells) {
+                tmp = data.cells;
+            } else if (data.nodes || data.edges) {
+                tmp = [].concat(data.nodes, data.edges);
+            }
+            if (tmp) {
+                tmp.forEach((item) => {
+                    if (item.shape !== "edge") {
+                        model.nodes.push({
+                            id: item.id,
+                            size: [item.size.width, item.size.height],
+                            label: item.attrs.text.text
+                        });
+                    } else {
+                        let sourceId = item.source;
+                        let targetId = item.target;
+                        if (typeof item.source === "object") {
+                            sourceId = item.source.cell;
+                        }
+                        if (typeof item.target === "object") {
+                            targetId = item.target.cell;
+                        }
+                        model.edges.push({
+                            source: sourceId,
+                            target: targetId
+                        });
+                    }
+                });
+            }
+
+            // layout
+            const gridLayout = new GridLayout({
+                type: "grid",
+                begin: [10, 10],
+                width: 480,
+                height: 260,
+                sortBy: "label",
+                rows: 3,
+                cols: 3,
+                nodeSize: [100, 100],
+            });
+            const layoutData = gridLayout.layout(model);
+
+            // postprocess
+            if (layoutData && layoutData.nodes) {
+                layoutData.nodes.forEach((item) => {
+                    const d = tmp.find((d) => d.id === item.id);
+                    if (!d.position) {
+                        d.position = {};
+                    }
+                    d.position.x = item.x;
+                    d.position.y = item.y;
+                });
+            }
+            return data;
+        },
+        getAllJson(){
+            let graph = this.graph
+            let graphToJsonData = graph.toJSON()
+            console.log(graphToJsonData)
+        },
+        graphToJson() {
+
+            // console.log("graphtoJson",graphToJsonData)
+            // let atemp = graph.parseJSON(graphToJsonData)
+            // console.log("parseJson:",atemp)
+            // let btemp = graph.fromJSON(graphToJsonData)
+            // console.log("fromJSON:",btemp)
+
+            console.log("testData", testData)
+            let targetData = this.layout(testData)
+            console.log("targetData", targetData)
+            this.graph.fromJSON(targetData)
+        },
+        // getPortByID(id) {
+        //     let graph = this.graph
+        //     return graph.getPort('port1')
+        // }
     },
 };
 </script>
