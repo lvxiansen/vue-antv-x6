@@ -260,20 +260,20 @@
 </template>
 
 <script>
-import {Graph, Shape, Addon} from "@antv/x6";
-import {GridLayout} from "@antv/layout";
+import {Graph, Shape, Addon,DataUri} from "@antv/x6";
+import {GridLayout,ForceLayout} from "@antv/layout";
 import "@antv/x6-vue-shape";
 import "./shape";
 import nameDrawer from "./nameDrawer"
 import toolbar from "./toolbar"
 import modal from "./modal"
-import {DataUri} from '@antv/x6'
 // import tableData from './tableData'
 import testData from "../../public/data.json"
+import zhenshiData from "../../public/zhenshi.json"
 
 
 export default {
-    components: {nameDrawer, toolbar, modal},
+    components: {nameDrawer, toolbar, modal,GridLayout},
     data() {
         return {
             graph: null, //画布图层
@@ -310,7 +310,8 @@ export default {
                 portID:"0",
                 bandwidth:0,
                 delay:0
-            }
+            },
+            publicPath: process.env.BASE_URL
         };
     },
     mounted() {
@@ -1154,7 +1155,10 @@ export default {
                     this.getJson()
                     break
                 case 'graphToJson':
-                    this.graphToJson()
+                    this.getAllJson()
+                    break
+                case 'jsonToGraph':
+                    this.jsonToGraph()
                     break
                 default:
                     break
@@ -1220,7 +1224,8 @@ export default {
                             text: "n" + length,
                         },
                     },
-                    data: 100,
+                    bandwidth:100,
+                    delay:0
                 })
             }
             addpp()
@@ -1339,7 +1344,134 @@ export default {
             let graphToJsonData = graph.toJSON()
             console.log(graphToJsonData)
         },
-        graphToJson() {
+        jsonToGraph() {
+            console.log(zhenshiData.nodes[0])
+            console.log(this.publicPath)
+            console.log(`${this.publicPath}public/路由器.svg`)
+            const graph = this.graph
+            const getModelFromOriginData = () => {
+                const model = {
+                    nodes: [],
+                    edges: [],
+                }
+                zhenshiData.nodes.forEach((item) => {
+                    // console.log(item)
+                    model.nodes?.push({
+                        id: item.id,
+                        shape: 'circle',
+                        width: item.size>100?item.size:100,
+                        height: item.size>100?item.size:100,
+                        x: item.x,
+                        y: item.y,
+                        attrs: {
+                            body: {
+                                fill: '#5F95FF',
+                                stroke: 'transparent',
+                            },
+                            text: {
+                                'text': "Client"
+                            },
+                            image: {
+                                'xlink:href': 'https://gw.alipayobjects.com/os/s/prod/antv/assets/image/logo-with-text-73b8a.svg',
+                            }
+                        },
+                        ports: {
+                            groups: {
+                                po: {
+                                    position: {
+                                        name: "ellipseSpread",
+                                        args: {
+                                            start: 0
+                                        },
+                                    },
+                                    // 'position': 'left',
+                                    label: {
+                                        position: "top"
+                                    },
+                                    attrs: {
+                                        circle: {
+                                            r: 10,
+                                            magnet: true,
+                                            stroke: "#31d0c6",
+                                            strokeWidth: 2,
+                                            fill: "#fff"
+                                        }
+                                    }
+                                }
+                            },
+                            items:
+                            item.ports.items.map(
+                                function (sitem) {
+                                    return {
+                                        id: sitem.id,
+                                        group: "po",
+                                        attrs: {
+                                            text: {
+                                                text: String(sitem.id)
+                                            }
+                                        },
+                                        bandwidth: sitem.bandwidth,
+                                        delay: sitem.delay
+                                    }
+                                }
+                            )
+                        },
+                    })
+                })
+                zhenshiData.edges.forEach((item) => {
+                    model.edges?.push({
+                        source: item.source,
+                        target: item.target,
+                        attrs: {
+                            line: {
+                                stroke: '#A2B1C3',
+                                strokeWidth: 2,
+                                targetMarker: null,
+                            },
+                        },
+                    })
+                })
+                return model
+            }
+
+            const forceLayout = new ForceLayout({
+                type: 'force',
+                center: [369, 180],
+                preventOverlap: true,
+                collideStrength:1,
+                alphaMin: 0.2,
+                alphaDecay: 0.1,
+                nodeSpacing:30,
+                linkDistance: () => {
+                    return 100
+                },
+                nodeStrength: () => {
+                    return -10
+                },
+                edgeStrength: () => {
+                    return 0.1
+                },
+                tick: () => {
+                    const model = getModelFromOriginData(zhenshiData)
+                    graph.fromJSON(model)
+                },
+            })
+            forceLayout.layout(zhenshiData)
+            console.log(getModelFromOriginData(zhenshiData))
+
+            // const gridLayout = new GridLayout({
+            //     type: 'grid',
+            //     width: 738,
+            //     height: 360,
+            //     sortBy: 'label',
+            //     rows: 3,
+            //     cols: 7,
+            //     nodeSize: [100, 100],
+            // })
+            //
+            // const model = gridLayout.layout(zhenshiData)
+            // graph.fromJSON(model)
+
 
             // console.log("graphtoJson",graphToJsonData)
             // let atemp = graph.parseJSON(graphToJsonData)
@@ -1347,10 +1479,14 @@ export default {
             // let btemp = graph.fromJSON(graphToJsonData)
             // console.log("fromJSON:",btemp)
 
-            console.log("testData", testData)
-            let targetData = this.layout(testData)
-            console.log("targetData", targetData)
-            this.graph.fromJSON(targetData)
+            // console.log("testData", testData)
+            // let targetData = this.layout(testData)
+            // console.log("targetData", targetData)
+            // this.graph.fromJSON(targetData)
+            // console.log("zhenshiData", testData)
+            // let targetData = this.layout(zhenshiData)
+            // console.log("targetData", targetData)
+            // this.graph.fromJSON(targetData)
         },
         // getPortByID(id) {
         //     let graph = this.graph

@@ -1,5 +1,5 @@
 
-const baseUrl = '';
+// const baseUrl = '';
 const port = 8000; // dev port
 
 module.exports = {
