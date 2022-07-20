@@ -43,14 +43,14 @@
                         :model="edgeFrmData"
                         label-width="80px"
                         label-position="left">
-                        <el-form-item label="名称" prop="name">
+                        <el-form-item label="名称" prop="name" value="aa">
                             <el-input v-model="edgeFrmData.name"></el-input>
                         </el-form-item>
-                        <el-form-item label="id" prop="id">
+                        <el-form-item label="id" prop="id" value="aa">
                             <el-input v-model="edgeFrmData.id"></el-input>
                         </el-form-item>
                         <el-form-item label="bandwidth" prop="bandwidth">
-                            <el-input v-model="edgeFrmData.bandwidth"></el-input>
+                            <el-input v-model.number="edgeFrmData.bandwidth"></el-input>
                         </el-form-item>
                         <el-form-item label="delay" prop="delay">
                             <el-input v-model="edgeFrmData.delay"></el-input>
@@ -60,7 +60,7 @@
                 <span slot="footer">
                   <el-button @click="edgeClose">取消</el-button>
                   <el-button type="primary" @click="confirmEdge">确定</el-button>
-<!--                  <el-button type="primary" @click="addPort">增加节点</el-button>-->
+                    <!--                  <el-button type="primary" @click="addPort">增加节点</el-button>-->
                   <el-button type="primary" @click="viewPort">查看端口</el-button>
                   <el-button type="primary" @click="viewEdge">查看连线</el-button>
                   <el-button type="primary" @click="getAllJson">转为json</el-button>
@@ -248,7 +248,8 @@
                 </el-form>
                 <div slot="footer" class="dialog-footer">
                     <el-button @click="singlePortFormVisible = false">取 消</el-button>
-                    <el-button type="primary" @click="singlePortEditDo(singlePort.nodeID,singlePort.portID)">确 定</el-button>
+                    <el-button type="primary" @click="singlePortEditDo(singlePort.nodeID,singlePort.portID)">确 定
+                    </el-button>
                 </div>
             </el-dialog>
         </div>
@@ -260,8 +261,8 @@
 </template>
 
 <script>
-import {Graph, Shape, Addon,DataUri} from "@antv/x6";
-import {GridLayout,ForceLayout} from "@antv/layout";
+import {Graph, Shape, Addon, DataUri} from "@antv/x6";
+import {GridLayout, ForceLayout} from "@antv/layout";
 import "@antv/x6-vue-shape";
 import "./shape";
 import nameDrawer from "./nameDrawer"
@@ -273,7 +274,7 @@ import zhenshiData from "../../public/zhenshi.json"
 
 
 export default {
-    components: {nameDrawer, toolbar, modal,GridLayout},
+    components: {nameDrawer, toolbar, modal, GridLayout},
     data() {
         return {
             graph: null, //画布图层
@@ -284,14 +285,19 @@ export default {
             nodeShowAttrConfig: false,
             edgeShowAttrConfig: false,
             nodeFrmData: {},
-            edgeFrmData: {},
+            edgeFrmData: {
+                name: "a",
+                id: "a",
+                bandwidth: "a",
+                delay: "a",
+            },
             allPort: [],
             allEdge: [],
             port: {},
             portTableDialogVisible: false,
             PortFormDialogVisible: false,
             editPortObj: {
-                nodeID:"",
+                nodeID: "",
                 id: "",
                 group: "",
                 data: ""
@@ -301,15 +307,15 @@ export default {
             editEdgeObj: {
                 sourceName: "",
                 targetName: "",
-                bandwidth:"",
-                delay:"",
+                bandwidth: "",
+                delay: "",
             },
             singlePortFormVisible: false,
-            singlePort:{
-                nodeID:"0",
-                portID:"0",
-                bandwidth:0,
-                delay:0
+            singlePort: {
+                nodeID: "0",
+                portID: "0",
+                bandwidth: 0,
+                delay: 0
             },
             publicPath: process.env.BASE_URL
         };
@@ -340,7 +346,7 @@ export default {
             //根据索引，赋值到list制定的数
             this.allPort[index] = this.editPortObj;
             const cell = graph.getSelectedCells()[0];
-            cell.setPortProp(this.editPortObj.id,"data",this.editPortObj.data)
+            cell.setPortProp(this.editPortObj.id, "data", this.editPortObj.data)
             //关闭弹窗
             this.PortFormDialogVisible = false;
         },
@@ -352,17 +358,17 @@ export default {
             const cell = graph.getSelectedCells()[0];
             // cell.setData(this.editPortObj.bandwidth,"bandwidth",this.editPortObj.bandwidth)
             // cell.setData(this.editPortObj.delay,"delay",this.editPortObj.delay)
-            cell.setData({bandwidth:this.editPortObj.bandwidth,delay:this.editPortObj.delay})
+            cell.setData({bandwidth: this.editPortObj.bandwidth, delay: this.editPortObj.delay})
             //关闭弹窗
             this.edgeFormDialogVisible = false;
         },
-        singlePortEditDo(nodeID,portID){
+        singlePortEditDo(nodeID, portID) {
             const graph = this.graph
             const nodes = graph.getNodes();
             const anode = nodes.filter((node) => node.id === nodeID)[0];
             // let port = anode.getPort(portID)
-            anode.setPortProp(portID,"bandwidth",this.singlePort.bandwidth)
-            anode.setPortProp(portID,"delay",this.singlePort.delay)
+            anode.setPortProp(portID, "bandwidth", this.singlePort.bandwidth)
+            anode.setPortProp(portID, "delay", this.singlePort.delay)
             this.singlePortFormVisible = false;
         },
         openPortReport() {
@@ -481,13 +487,13 @@ export default {
                     // //略过标签时显示
                     // this.viewSinglePort()
                     // 如果是e，this就是graph.如果是(),就是contentContainer，也就是circle这个元素
-                    contentContainer.addEventListener("mouseenter", function (e){
+                    contentContainer.addEventListener("mouseenter", function (e) {
                         const node = args.node
                         const port = args.port
-                        console.log("portID",port.id)
+                        console.log("portID", port.id)
                         // console.log(args.getPortByID(args.node.port.id))
                         let theport = node.getPort(port.id)
-                        theport.data  = 200
+                        theport.data = 200
                         // aatemp.singlePortFormVisible = true
                         const tooltip = document.querySelector(".tooltip-widget");
                         if (tooltip) {
@@ -509,11 +515,11 @@ export default {
                             }
                         }, 30);
                     });
-                    contentContainer.addEventListener("contextmenu", function (){
+                    contentContainer.addEventListener("contextmenu", function () {
                         console.log("click")
                         const node = args.node
                         const port = args.port
-                        console.log("node,",node.id)
+                        console.log("node,", node.id)
                         vue.singlePortFormVisible = true
                         vue.singlePort.nodeID = node.id
                         vue.singlePort.portID = port.id
@@ -521,7 +527,7 @@ export default {
                         vue.singlePort.delay = port.delay
                         // console.log(args.getPortByID(args.node.port.id))
                         let theport = node.getPort(port.id)
-                        theport.data  = 200
+                        theport.data = 200
                     });
                     // console.log(this)
                     // this.viewSinglePort()
@@ -547,59 +553,70 @@ export default {
                 this.visible = !this.visible
             }
         },
-        getNode() {
+        getNodeData() {
             let graph = this.graph
-            // console.log(graph.toJSON())
             const nodes = graph.getNodes()
-            const result = nodes.map(node => {
-                const {id} = node.id
-                // console.log("node--",node)
-                // console.log("getData--",node.getData())
-                const nodeId = node.getData().id || id
-                const nodeName = node.getData().name || id
-                const nodePort = node.port.ports
-                return {
-                    nodeId,
-                    nodeName,
-                    nodePort
+            let result = []
+            nodes.forEach(node => {
+                let items = []
+                if (node.port.ports.length > 0) {
+                    node.port.ports.forEach(no => {
+                        items.push({
+                            "items":
+                                {
+                                    "id": no.id,
+                                    "bandwidth": no.bandwidth,
+                                    "delay": no.delay
+                                }
+                        })
+                    })
                 }
+                result.push({
+                    "ports": {"items": items},
+                    "id": node.id,
+                    // "x": 0,
+                    // "y": 0,
+                    "size": 30,
+                    "data": {
+                        "name": node.getData().name,
+                        "id": node.getData().id,
+                        "layer": node.getData().layer,
+                        "province": node.getData().province,
+                    }
+                })
             })
             return result
         },
-        getEdge() {
+        getEdgeData() {
             let graph = this.graph
             // 获取所有边
             const edges = graph.getEdges()
-            // console.log("getEdge",edges)
-            // console.log("getSource",edges[0].getSource())
-            // console.log("getSourceCell",edges[0].getSourceCell())
-            // console.log("getSourceNode",edges[0].getSourceNode())
-            // console.log("getSourcePortId",edges[0].getSourcePortId())
-            const result = edges.map(edge => {
-                const {id} = edge.id
-                const edgeId = edge.getData().id || id
-                const edgeName = edge.getData().name
-                const edgeBandwidth = edge.getData().bandwidth
-                const edgeDelay = edge.getData().delay
-                return {
-                    id: edge.id,
-                    sourceNodeName: edge.getSourceNode().data.name,
-                    targetNodeName: edge.getTargetNode().data.name,
-                    sourcePortID: edge.getSourcePortId(),
-                    targetPortID: edge.getTargetPortId(),
-                    edgeId:edgeId,
-                    edgeName:edgeName,
-                    edgeBandwidth:edgeBandwidth,
-                    edgeDelay:edgeDelay
-                }
+            let result = []
+            // console.log("data", edges[0].getSourceNode())
+            edges.forEach(edge => {
+                result.push({
+                    "id": edge.id,
+                    "source": {
+                        "cell": edge.getSourceNode().id,
+                        "port": edge.getSourcePortId(),
+                    },
+                    "target": {
+                        "cell": edge.getTargetNode().id,
+                        "port": edge.getTargetPortId(),
+                    },
+                    "data": {
+                        "name": edge.getData().name,
+                        "id": edge.getData().id,
+                        "bandwidth": edge.getData().bandwidth,
+                        "delay": edge.getData().delay,
+                    }
+                })
             })
-            console.log("result",result)
             return result
         },
         getJson() {
-            let atoms = {nodes: this.getNode(), edges: this.getEdge()}
+            let atoms = {nodes: this.getNodeData(), edges: this.getEdgeData()}
             console.log(atoms)
-            console.log("table:", this.allPort)
             return atoms
         },
         /*
@@ -681,39 +698,10 @@ export default {
                             text: {text: 'i1'},
 
                         },
-                        bandwidth:100,
-                        delay:0
+                        bandwidth: 100,
+                        delay: 0
                     },
                 ],
-                //     {
-                //         id: 'port2',
-                //         group: 'po',
-                //         attrs: {
-                //             text: {text: 'i2'},
-                //         },
-                //     },
-                //     {
-                //         id: 'port3',
-                //         group: 'po',
-                //         attrs: {
-                //             text: {text: 'i3'},
-                //         },
-                //     },
-                //     {
-                //         id: 'port4',
-                //         group: 'po',
-                //         attrs: {
-                //             text: {text: 'o1'},
-                //         },
-                //     },
-                //     {
-                //         id: 'port5',
-                //         group: 'po',
-                //         attrs: {
-                //             text: {text: 'o2'},
-                //         },
-                //     },
-                // ],
             }
             Graph.registerNode(
                 'custom-image',
@@ -755,6 +743,12 @@ export default {
                         },
                     },
                     ports: {...this.port},
+                    data: {
+                        name: "a",
+                        id: "a",
+                        layer: "a",
+                        province: "a"
+                    }
                 },
                 true,
             )
@@ -1039,13 +1033,7 @@ export default {
                 console.log("node")
                 if (cell) {
                     this.nodeShowAttrConfig = true;
-                    // console.log(cell.data)
-                    // console.log(cell._isNode)
-                    // console.log(cell._isEdge)
-                    this.nodeFrmData = Object.assign(cell.data || {}, {
-                        isNode: cell._isNode,
-                        isEdge: cell._isEdge
-                    });
+                    this.nodeFrmData = Object.assign(cell.data || {});
                 } else {
                     this.nodeShowAttrConfig = false;
                 }
@@ -1054,13 +1042,23 @@ export default {
                 let cell = e.cell
                 if (cell) {
                     this.edgeShowAttrConfig = true;
-                    this.edgeFrmData = Object.assign(cell.data || {}, {
-                        isNode: cell._isNode,
-                        isEdge: cell._isEdge
-                    });
+                    this.edgeFrmData = Object.assign(cell.data || {});
                 } else {
                     this.edgeShowAttrConfig = false;
                 }
+            })
+            graph.on('edge:connected', (e) => {
+                // console.log(e)
+                // console.log(edge)
+                let cell = e.edge
+                let tempdata = {
+                    name: "b",
+                    id: "bb",
+                    bandwidth: 200,
+                    delay: 100,
+                }
+                cell.setData(tempdata)
+                // edge.setData(tempdata)
             })
             // graph.on("port:click", (e) => {
             //     console.log("bbbbbbbbbb")
@@ -1224,8 +1222,8 @@ export default {
                             text: "n" + length,
                         },
                     },
-                    bandwidth:100,
-                    delay:0
+                    bandwidth: 100,
+                    delay: 0
                 })
             }
             addpp()
@@ -1252,7 +1250,7 @@ export default {
             this.edgeTableDialogVisible = true
             let allEdges = this.getEdge()
             this.allEdge = []
-            console.log("allEdges",allEdges)
+            console.log("allEdges", allEdges)
             for (let i = 0; i < allEdges.length; i++) {
                 let temp = {
                     sourceNodeName: allEdges[i].sourceNodeName,
@@ -1339,7 +1337,7 @@ export default {
             }
             return data;
         },
-        getAllJson(){
+        getAllJson() {
             let graph = this.graph
             let graphToJsonData = graph.toJSON()
             console.log(graphToJsonData)
@@ -1355,12 +1353,12 @@ export default {
                     edges: [],
                 }
                 zhenshiData.nodes.forEach((item) => {
-                    // console.log(item)
+                    console.log("x,y",item.x,item.y)
                     model.nodes?.push({
                         id: item.id,
                         shape: 'circle',
-                        width: item.size>100?item.size:100,
-                        height: item.size>100?item.size:100,
+                        width: item.size > 100 ? item.size : 100,
+                        height: item.size > 100 ? item.size : 100,
                         x: item.x,
                         y: item.y,
                         attrs: {
@@ -1369,7 +1367,7 @@ export default {
                                 stroke: 'transparent',
                             },
                             text: {
-                                'text': "Client"
+                                text: "Client"
                             },
                             image: {
                                 'xlink:href': 'https://gw.alipayobjects.com/os/s/prod/antv/assets/image/logo-with-text-73b8a.svg',
@@ -1384,7 +1382,6 @@ export default {
                                             start: 0
                                         },
                                     },
-                                    // 'position': 'left',
                                     label: {
                                         position: "top"
                                     },
@@ -1400,28 +1397,41 @@ export default {
                                 }
                             },
                             items:
-                            item.ports.items.map(
-                                function (sitem) {
-                                    return {
-                                        id: sitem.id,
-                                        group: "po",
-                                        attrs: {
-                                            text: {
-                                                text: String(sitem.id)
-                                            }
-                                        },
-                                        bandwidth: sitem.bandwidth,
-                                        delay: sitem.delay
+                                item.ports.items.map(
+                                    function (sitem) {
+                                        return {
+                                            id: sitem.items.id,
+                                            group: "po",
+                                            attrs: {
+                                                text: {
+                                                    text: String(sitem.items.id)
+                                                }
+                                            },
+                                            bandwidth: sitem.items.bandwidth,
+                                            delay: sitem.items.delay
+                                        }
                                     }
-                                }
-                            )
+                                )
                         },
+                        data: {
+                            name: item.data.name,
+                            id: item.data.id,
+                            layer: item.data.layer,
+                            province: item.data.province
+                        }
                     })
                 })
                 zhenshiData.edges.forEach((item) => {
+                    console.log("item",item)
                     model.edges?.push({
-                        source: item.source,
-                        target: item.target,
+                        source: {
+                            cell:item.source.cell,
+                            port:item.source.port
+                        },
+                        target: {
+                            cell:item.target.cell,
+                            port:item.target.port
+                        },
                         attrs: {
                             line: {
                                 stroke: '#A2B1C3',
@@ -1429,8 +1439,15 @@ export default {
                                 targetMarker: null,
                             },
                         },
+                        data: {
+                            name: item.data.name,
+                            id: item.data.id,
+                            bandwidth: item.data.bandwidth,
+                            delay: item.data.delay,
+                        }
                     })
                 })
+                console.log("model",model)
                 return model
             }
 
@@ -1438,10 +1455,10 @@ export default {
                 type: 'force',
                 center: [369, 180],
                 preventOverlap: true,
-                collideStrength:1,
+                collideStrength: 1,
                 alphaMin: 0.2,
                 alphaDecay: 0.1,
-                nodeSpacing:30,
+                nodeSpacing: 30,
                 linkDistance: () => {
                     return 100
                 },
@@ -1479,14 +1496,6 @@ export default {
             // let btemp = graph.fromJSON(graphToJsonData)
             // console.log("fromJSON:",btemp)
 
-            // console.log("testData", testData)
-            // let targetData = this.layout(testData)
-            // console.log("targetData", targetData)
-            // this.graph.fromJSON(targetData)
-            // console.log("zhenshiData", testData)
-            // let targetData = this.layout(zhenshiData)
-            // console.log("targetData", targetData)
-            // this.graph.fromJSON(targetData)
         },
         // getPortByID(id) {
         //     let graph = this.graph

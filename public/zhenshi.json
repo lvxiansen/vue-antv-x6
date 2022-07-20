@@ -1,73 +1,63 @@
 {
-  "edges": [
-    {
-      "id": "9c0243c7-1012-4f0c-91cc-419a873d941f",
-      "source": {
-        "cell": "9a9be5ec-5f54-42de-9efb-1be085a1e614",
-        "port": "port1"
-      },
-      "target": {
-        "cell": "c5d4f9f5-33ae-4c24-9cb9-d8e170f80c02",
-        "port": "port1"
-      }
-    },
-    {
-      "id": "9c0243c7-1012-4f0c-91cc-419a873d941h",
-      "source": {
-        "cell": "9a9be5ec-5f54-42de-9efb-1be085a1e614",
-        "port": "port2"
-      },
-      "target": {
-        "cell": "c5d4f9f5-33ae-4c24-9cb9-d8e170f80c02",
-        "port": "port2"
-      }
-    }
-  ],
   "nodes": [
     {
       "ports": {
         "items": [
           {
-            "id": "port1",
-            "bandwidth": "300",
-            "delay": 0
-          },
-          {
-            "id": "port2",
-            "bandwidth": "300",
-            "delay": 0
-          },
-          {
-            "id": "port3",
-            "bandwidth": "200",
-            "delay": 0
+            "items": {
+              "id": "port1",
+              "bandwidth": "200",
+              "delay": 0
+            }
           }
         ]
       },
-      "id": "9a9be5ec-5f54-42de-9efb-1be085a1e614",
-      "x": 0,
-      "y": 0,
-      "size": 30
+      "id": "anode",
+      "data": {
+        "name": "a",
+        "id": "a",
+        "layer": "a",
+        "province": "a"
+      }
     },
     {
       "ports": {
         "items": [
           {
-            "id": "port1",
-            "bandwidth": "300",
-            "delay": 0
-          },
-          {
-            "id": "port2",
-            "bandwidth": "300",
-            "delay": 0
+            "items": {
+              "id": "port1",
+              "bandwidth": "200",
+              "delay": 0
+            }
           }
         ]
       },
-      "id": "c5d4f9f5-33ae-4c24-9cb9-d8e170f80c02",
-      "x": 0,
-      "y": 0,
-      "size": 30
+      "id": "bnode",
+      "data": {
+        "name": "a",
+        "id": "a",
+        "layer": "a",
+        "province": "a"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "f58287b3-5fa0-4609-aedf-c5d32c7d6959",
+      "source": {
+        "cell": "anode",
+        "port": "port1"
+      },
+      "target": {
+        "cell": "bnode",
+        "port": "port1"
+      },
+      "data": {
+        "name": "b",
+        "id": "bb",
+        "bandwidth": 200,
+        "delay": 100
+      }
     }
   ]
 }
